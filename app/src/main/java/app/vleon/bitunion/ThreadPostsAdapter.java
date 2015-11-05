@@ -20,16 +20,16 @@ import app.vleon.buapi.BuAPI;
 import app.vleon.util.GlideImageGetter;
 
 public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.ViewHolder> implements View.OnClickListener {
-    private ArrayList<PostInfo> mDataset;
+    private ArrayList<BuAPI.PostInfo> mDataset;
     private Context mContext;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
     public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, PostInfo data);
+        void onItemClick(View view, BuAPI.PostInfo data);
     }
 
-    public ThreadPostsAdapter(Context context, ArrayList<PostInfo> dataset) {
+    public ThreadPostsAdapter(Context context, ArrayList<BuAPI.PostInfo> dataset) {
         mDataset = dataset;
         mContext = context;
     }
@@ -52,7 +52,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            PostInfo postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            BuAPI.PostInfo postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
             if (postInfo.subject.equals("")) {
                 holder.mSubjectTextView.setVisibility(View.GONE);
             } else {
@@ -74,7 +74,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     holder.mQuotesTextView.setVisibility(View.VISIBLE);
                     // 显示引用信息部分
                     String quoteString = "";
-                    Quote tmpQuote;
+                    BuAPI.Quote tmpQuote;
                     for (int i = 0; i < postInfo.quotes.size(); i++) {
                         tmpQuote = postInfo.quotes.get(i);
                         if (i > 0)
@@ -153,11 +153,11 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     @Override
     public void onClick(View view) {
         if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (PostInfo) view.getTag());
+            mOnItemClickListener.onItemClick(view, (BuAPI.PostInfo) view.getTag());
         }
     }
 
-    public void refresh(ArrayList<PostInfo> dataset) {
+    public void refresh(ArrayList<BuAPI.PostInfo> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }

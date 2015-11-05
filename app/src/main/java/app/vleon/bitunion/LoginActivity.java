@@ -18,30 +18,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
-
-import org.json.JSONObject;
-
-import java.util.HashMap;
 
 import app.vleon.buapi.BuAPI;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends Activity {
+public class LoginActivity extends Activity implements BuAPI.OnLoginResponseListener {
 
     public static BuAPI mAPI;
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    public static RequestQueue mRequestQueue;
-    public static LoginInfo mLoginInfo;
+    public static BuAPI.LoginInfo mLoginInfo;
 
     // UI references.
     private EditText mUsernameView;
@@ -54,10 +44,8 @@ public class LoginActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
-
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -81,8 +69,8 @@ public class LoginActivity extends Activity {
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        mRequestQueue = Volley.newRequestQueue(this);
-        mLoginInfo = new LoginInfo();
+        mAPI = new BuAPI(this);
+        mAPI.setOnLoginResponseListener(this);
     }
 
     /**
@@ -125,12 +113,9 @@ public class LoginActivity extends Activity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-//            mAuthTask = new UserLoginTask(username, password);
-//            mAuthTask.execute((Void) null);
             BuAPI.setOuterNet();
-//            login(mUsernameView.getText().toString(), mPasswordView.getText().toString());
             // TODO: 2015/11/5
-            login("vleon", "fengliang20701159");
+            mAPI.login("vleon", "fengliang20701159");
         }
     }
 
@@ -170,55 +155,22 @@ public class LoginActivity extends Activity {
         }
     }
 
-    /**
-     * 论坛登录
-     *
-     * @param username 用户名
-     * @param password 密码
-     */
-    public void login(String username, String password) {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "login");
-        params.put("username", username);
-        params.put("password", password);
-        final Gson gson = new Gson();
-        JsonObjectRequest mLoginRequest = new JsonObjectRequest(BuAPI.LOGGING_URL,
-                new JSONObject(params),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("TAG", response.toString());
-                        mLoginInfo = gson.fromJson(response.toString(), LoginInfo.class);
-//                        Toast.makeText(LoginActivity.this, String.format("%s login %s: %s", mLoginInfo.uid, mLoginInfo.result, mLoginInfo.session), Toast.LENGTH_SHORT).show();
-                        showProgress(false);
-                        switch (mLoginInfo.result) {
-                            case "success":
-//                                getThreadsList(14, 1, 10);
-                                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
-                                startActivity(intent);
-                                break;
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("TAG", error.getMessage(), error);
-                        Toast.makeText(LoginActivity.this, "获取主题异常", Toast.LENGTH_SHORT).show();
-                        showProgress(false);
-                    }
-                });
-        mRequestQueue.add(mLoginRequest);
+    @Override
+    public void handleLoginResponse() {
+        showProgress(false);
+        switch (mAPI.getLoginResult()) {
+            case SUCCESS:
+                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
+                startActivity(intent);
+                break;
+        }
     }
 
+    @Override
+    public void handleLoginErrorResponse(VolleyError error) {
+        Log.d("TAG", error.getMessage(), error);
+        Toast.makeText(LoginActivity.this, "登录异常: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+        showProgress(false);
+    }
 }
 
-class LoginInfo {
-    String result;
-    String uid;
-    String username;
-    String session;
-    String status;
-    String credit;
-    String lastactivity;
-}

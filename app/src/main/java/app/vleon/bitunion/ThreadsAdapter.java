@@ -16,15 +16,15 @@ import java.util.ArrayList;
 import app.vleon.buapi.BuAPI;
 
 public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> implements View.OnClickListener {
-    private ArrayList<ThreadInfo> mDataset;
+    private ArrayList<BuAPI.ThreadInfo> mDataset;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
     public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, ThreadInfo data);
+        void onItemClick(View view, BuAPI.ThreadInfo data);
     }
 
-    public ThreadsAdapter(ArrayList<ThreadInfo> dataset) {
+    public ThreadsAdapter(ArrayList<BuAPI.ThreadInfo> dataset) {
         mDataset = dataset;
     }
 
@@ -49,7 +49,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            ThreadInfo thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            BuAPI.ThreadInfo thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
             try {
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(thread.author, "UTF-8")));
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(thread.subject, "UTF-8")));
@@ -118,11 +118,11 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onClick(View view) {
         if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (ThreadInfo) view.getTag());
+            mOnItemClickListener.onItemClick(view, (BuAPI.ThreadInfo) view.getTag());
         }
     }
 
-    public void refresh(ArrayList<ThreadInfo> dataset) {
+    public void refresh(ArrayList<BuAPI.ThreadInfo> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
