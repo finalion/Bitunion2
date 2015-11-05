@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Bitunion</string>
+    <string name="title_activity_thread_posts">ThreadPostsActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="loadmore">加载下一页...</string>
+    <string name="action_refresh">刷新</string>
+</resources>
