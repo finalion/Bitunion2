@@ -2,6 +2,7 @@ package app.vleon.buapi;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -38,31 +39,8 @@ public class BuAPI {
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
             POST_URL, REQUEST_PROFILE, NEWPOST, NEWTHREAD;
 
-    public static String URL_EMOTICON_IMAGE_PREFIX;
-//    public static String URL_EMOTICON_IMAGE_PREFIX;
-
-    // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
-    // autoRefreshSession开关决定是否重新刷新session
-    final boolean enableRefreshSession = true;
-    final int maxRefreshCnt = 2; // 最多重试两次
-    int refreshCnt = 0;
-
-    private RequestQueue mRequestQueue;
-    private OnLoginResponseListener mOnLoginResponseListener = null;
-    private OnThreadsResponseListener mOnThreadsResponseListener = null;
-    private OnPostsResponseListener mOnPostsResponseListener = null;
-
-    public Result getLoginResult() {
-        if (mLoginInfo.result.equals("success")) {
-            return Result.SUCCESS;
-        } else {
-            switch (mLoginInfo.msg) {
-                default:
-                    break;
-            }
-        }
-        return Result.FAILURE;
-    }
+    private final int RETRY_GETTHREADS_FLAG = 1;
+    private final int RETRY_GETPOSTS_FLAG = 2;
 
     public enum Result {
         SUCCESS, // 返回数据成功，result字段为success
@@ -72,41 +50,44 @@ public class BuAPI {
         SESSIONLOGIN, // obsolete
         NETWRONG, // 没有返回数据
         NOTLOGIN, // api还未登录
-        UNKNOWN
+        NUMBER_ERROR,  // TO - FROM > 20
+        UNKNOWN,   //未知错误代码
+        NULL   //还未返回结果
     }
+
+    public static String URL_EMOTICON_IMAGE_PREFIX;
+//    public static String URL_EMOTICON_IMAGE_PREFIX;
+
+    // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
+    // autoRefreshSession开关决定是否重新刷新session
+    final boolean enableRefreshSession = true;
+    final int maxRefreshCnt = 2; // 最多重试两次
+    int mRetryCount = 0;
+
+    private RequestQueue mRequestQueue;
+    private OnLoginResponseListener mOnLoginResponseListener = null;
+    private OnThreadsResponseListener mOnThreadsResponseListener = null;
+    private OnPostsResponseListener mOnPostsResponseListener = null;
+    private Result mThreadsResult = Result.NULL;
+    private Result mPostsResult = Result.NULL;
 
     String mUsername, mPassword;
     String mSession;
     boolean isLogined;
+    int mThreadsFid;
+    int mThreadsFrom;
+    int mThreadsTo;
+    int mPostsTid;
+    int mPostsFrom;
+    int mPostsTo;
 
     public LoginInfo mLoginInfo;
     Context mContext;
 
-    public static void setInnerNet() {
-        ROOTURL = "http://www.bitunion.org/";
-        buildUrls();
-    }
-
-    public static void setOuterNet() {
-        ROOTURL = "http://out.bitunion.org/";
-        buildUrls();
-    }
-
-    private static void buildUrls() {
-        BASEURL = ROOTURL + "open_api/";
-        LOGGING_URL = BASEURL + "bu_logging.php";
-        FORUM_URL = BASEURL + "bu_forum.php";
-        THREAD_URL = BASEURL + "bu_thread.php";
-        REQUEST_PROFILE = BASEURL + "bu_profile.php";
-        POST_URL = BASEURL + "bu_post.php";
-        NEWPOST = BASEURL + "bu_newpost.php";
-        NEWTHREAD = BASEURL + "bu_newpost.php";
-    }
-
     int flagCnt = 0;
     int mError = NONE;
     int mNetType;
-    private JSONObject mForumJSON;
+
 
     public BuAPI(Context context) {
         mContext = context;
@@ -131,6 +112,58 @@ public class BuAPI {
         NEWTHREAD = BASEURL + "bu_newpost.php";
     }
 
+    public Result getLoginResult() {
+        Result result = Result.UNKNOWN;
+        if (mLoginInfo.result.equals("success")) {
+            result = Result.SUCCESS;
+        }
+        if (mLoginInfo.result.equals("fail")) {
+            switch (mLoginInfo.msg) {
+                case "IP+logged":
+                    // 用户名 密码错误都有可能返回IP+LOGGED
+                    result = Result.IP_LOGGED;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return result;
+    }
+
+    public Result getThreadsResult() {
+        return mThreadsResult;
+    }
+
+    public LoginInfo getLoginInfo() {
+        return mLoginInfo;
+    }
+
+
+    public static void setInnerNet() {
+        ROOTURL = "http://www.bitunion.org/";
+        buildUrls();
+    }
+
+    public static void setOuterNet() {
+        ROOTURL = "http://out.bitunion.org/";
+        buildUrls();
+    }
+
+    private static void buildUrls() {
+        BASEURL = ROOTURL + "open_api/";
+        LOGGING_URL = BASEURL + "bu_logging.php";
+        FORUM_URL = BASEURL + "bu_forum.php";
+        THREAD_URL = BASEURL + "bu_thread.php";
+        REQUEST_PROFILE = BASEURL + "bu_profile.php";
+        POST_URL = BASEURL + "bu_post.php";
+        NEWPOST = BASEURL + "bu_newpost.php";
+        NEWTHREAD = BASEURL + "bu_newpost.php";
+    }
+
+    public void updateSession() {
+
+    }
+
     public String getSession() {
         return mLoginInfo.session;
     }
@@ -138,34 +171,50 @@ public class BuAPI {
     /**
      * 论坛登录
      *
-     * @param username 用户名
-     * @param password 密码
+     * @param username  用户名
+     * @param password  密码
+     * @param retryFlag 重试标识
      */
-    public void login(String username, String password) {
+    public void login(String username, String password, final int retryFlag) {
+        mUsername = username;
+        mPassword = password;
         HashMap<String, String> params = new HashMap<>();
         params.put("action", "login");
         params.put("username", username);
         params.put("password", password);
         final Gson gson = new Gson();
-        JsonObjectRequest mLoginRequest = new JsonObjectRequest(BuAPI.LOGGING_URL,
+        JsonObjectRequest loginRequest = new JsonObjectRequest(BuAPI.LOGGING_URL,
                 new JSONObject(params),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         final Gson gson = new Gson();
                         mLoginInfo = gson.fromJson(response.toString(), LoginInfo.class);
-                        if (mOnLoginResponseListener != null)
+                        if ((mOnLoginResponseListener != null) && (retryFlag == 0)) {
                             mOnLoginResponseListener.handleLoginResponse();
+                        } else {
+                            if (retryFlag == RETRY_GETTHREADS_FLAG) {
+                                getThreadsList(mThreadsFid, mThreadsFrom, mThreadsTo);
+                            }
+                            if (retryFlag == RETRY_GETPOSTS_FLAG) {
+                                getThreadPosts(mPostsTid, mPostsFrom, mPostsTo);
+                            }
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (mOnLoginResponseListener != null)
+                        if ((mOnLoginResponseListener != null) && (retryFlag == 0)) {
                             mOnLoginResponseListener.handleLoginErrorResponse(error);
+                        }
                     }
                 });
-        mRequestQueue.add(mLoginRequest);
+        mRequestQueue.add(loginRequest);
+    }
+
+    public void login(String username, String password) {
+        login(username, password, 0);
     }
 
     /**
@@ -176,6 +225,9 @@ public class BuAPI {
      * @param to   帖子结束编号 to-from <=20
      */
     public void getThreadsList(final int fid, final int from, final int to) {
+        mThreadsFid = fid;
+        mThreadsFrom = from;
+        mThreadsTo = to;
         HashMap<String, String> params = new HashMap<>();
         params.put("action", "thread");
         params.put("username", mLoginInfo.username);
@@ -184,30 +236,44 @@ public class BuAPI {
         params.put("from", from + "");
         params.put("to", to + ""); // to=100, thread+number+error
         final Gson gson = new Gson();
-        JsonObjectRequest mLoginRequest = new JsonObjectRequest(THREAD_URL,
+        JsonObjectRequest threadsRequest = new JsonObjectRequest(THREAD_URL,
                 new JSONObject(params),
                 new Response.Listener<JSONObject>() {
-                    String result;
-                    String msg = "success";
-                    String list;
-
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("TAG", response.toString());
                         try {
-                            result = response.getString("result");
+                            String result = response.getString("result");
                             if (result.equals("success")) {
-                                list = response.getJSONArray("threadlist").toString();
-                                ArrayList<ThreadInfo> templist = gson.fromJson(list, new TypeToken<List<ThreadInfo>>() {
-                                }.getType());
+                                mRetryCount = 0;
+                                ArrayList<ThreadInfo> templist = null;
+                                if (response.has("threadlist")) {
+                                    mThreadsResult = Result.SUCCESS;
+                                    String tmp = response.getJSONArray("threadlist").toString();
+                                    templist = gson.fromJson(tmp, new TypeToken<List<ThreadInfo>>() {
+                                    }.getType());
+                                } else {
+                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
+                                }
                                 if (mOnThreadsResponseListener != null)
-                                    mOnThreadsResponseListener.handleThreadsGetterResponse(templist);
+                                    mOnThreadsResponseListener.handleThreadsGetterResponse(mThreadsResult, templist);
                             } else {
-                                msg = response.getString("msg");
+                                String msg = response.getString("msg");
                                 switch (msg) {
                                     case "thread+number+error":
+                                        mThreadsResult = Result.NUMBER_ERROR;
                                         break;
                                     case "IP+logged":
+                                        // session失效时，返回该msg，需要重新获取session
+                                        if (mRetryCount < 1) {
+                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+                                            login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
+                                        } else {
+                                            //重试一次之后仍然返回IP LOGGED，不再重试
+                                            mThreadsResult = Result.IP_LOGGED;
+                                            mRetryCount = 0;
+                                        }
+                                        mRetryCount++;
                                         break;
                                     default:
                                         break;
@@ -226,7 +292,7 @@ public class BuAPI {
                             mOnThreadsResponseListener.handleThreadsGetterErrorResponse(error);
                     }
                 });
-        mRequestQueue.add(mLoginRequest);
+        mRequestQueue.add(threadsRequest);
     }
 
     /**
@@ -248,6 +314,9 @@ public class BuAPI {
      * @param to   帖子结束编号 to-from <=20
      */
     public void getThreadPosts(final int tid, final int from, final int to) {
+        mPostsTid = tid;
+        mPostsFrom = from;
+        mPostsTo = to;
         HashMap<String, String> params = new HashMap<>();
         params.put("action", "post");
         params.put("username", mLoginInfo.username);
@@ -256,30 +325,47 @@ public class BuAPI {
         params.put("from", from + "");
         params.put("to", to + ""); // to=100, thread+number+error
         final Gson gson = new Gson();
-        JsonObjectRequest mLoginRequest = new JsonObjectRequest(BuAPI.POST_URL,
+        JsonObjectRequest postsRequest = new JsonObjectRequest(BuAPI.POST_URL,
                 new JSONObject(params),
                 new Response.Listener<JSONObject>() {
-                    String result;
-                    String msg = "success";
-
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("TAG", response.toString());
                         try {
-                            result = response.getString("result");
-                            if (result.equals("success") && response.has("postlist")) {
-                                String tmp = response.getJSONArray("postlist").toString();
-                                ArrayList<PostInfo> tempList = gson.fromJson(tmp, new TypeToken<List<PostInfo>>() {
-                                }.getType());
-                                for (PostInfo post : tempList) {
-                                    post.parse();
+                            String result = response.getString("result");
+                            if (result.equals("success")) {
+                                mRetryCount = 0;
+                                ArrayList<PostInfo> tempList = null;
+                                if (response.has("postlist")) {
+                                    mPostsResult = Result.SUCCESS;
+                                    String tmp = response.getJSONArray("postlist").toString();
+                                    tempList = gson.fromJson(tmp, new TypeToken<List<PostInfo>>() {
+                                    }.getType());
+                                    for (PostInfo post : tempList) {
+                                        post.parse();
+                                    }
+                                } else {
+                                    mPostsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
                                 }
                                 if (mOnPostsResponseListener != null)
-                                    mOnPostsResponseListener.handlePostsGetterResponse(tempList);
+                                    mOnPostsResponseListener.handlePostsGetterResponse(mPostsResult, tempList);
                             } else {
-                                msg = response.getString("msg");
+                                String msg = response.getString("msg");
                                 switch (msg) {
                                     case "thread+number+error":
+                                        mPostsResult = Result.NUMBER_ERROR;
+                                        break;
+                                    case "IP+logged":
+                                        // session失效时，返回该msg，需要重新获取session
+                                        if (mRetryCount < 1) {
+                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+                                            login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
+                                        } else {
+                                            //重试一次之后仍然返回IP LOGGED，不再重试
+                                            mPostsResult = Result.IP_LOGGED;
+                                            mRetryCount = 0;
+                                        }
+                                        mRetryCount++;
                                         break;
                                     default:
                                         break;
@@ -299,7 +385,7 @@ public class BuAPI {
                             mOnPostsResponseListener.handlePostsGetterErrorResponse(error);
                     }
                 });
-        mRequestQueue.add(mLoginRequest);
+        mRequestQueue.add(postsRequest);
     }
 
     public interface OnLoginResponseListener {
@@ -309,13 +395,13 @@ public class BuAPI {
     }
 
     public interface OnThreadsResponseListener {
-        void handleThreadsGetterResponse(ArrayList<ThreadInfo> threadsList);
+        void handleThreadsGetterResponse(Result result, ArrayList<ThreadInfo> threadsList);
 
         void handleThreadsGetterErrorResponse(VolleyError error);
     }
 
     public interface OnPostsResponseListener {
-        void handlePostsGetterResponse(ArrayList<PostInfo> postsList);
+        void handlePostsGetterResponse(Result result, ArrayList<PostInfo> postsList);
 
         void handlePostsGetterErrorResponse(VolleyError error);
     }

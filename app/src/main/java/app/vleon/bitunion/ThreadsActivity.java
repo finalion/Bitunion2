@@ -111,7 +111,14 @@ public class ThreadsActivity extends Activity implements BuAPI.OnThreadsResponse
     }
 
     @Override
-    public void handleThreadsGetterResponse(ArrayList<BuAPI.ThreadInfo> threadsList) {
+    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.ThreadInfo> threadsList) {
+        switch (result) {
+            case SUCCESS:
+                break;
+            case IP_LOGGED:
+                // session失效，重新获取
+                break;
+        }
         mThreadsList.addAll(threadsList);
         mAdapter.refresh(mThreadsList);
     }

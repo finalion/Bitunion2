@@ -114,12 +114,21 @@ public class ThreadPostsActivity extends Activity implements BuAPI.OnPostsRespon
 
 
     @Override
-    public void handlePostsGetterResponse(ArrayList<BuAPI.PostInfo> postsList) {
-        if (postsList.size() < 20) {
-            mPostsRecyclerView.disableLoadmore();
+    public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.PostInfo> postsList) {
+        switch (result) {
+            case SUCCESS:
+                mPostsList.addAll(postsList);
+                mAdapter.refresh(mPostsList);
+                if (postsList.size() < 20) {
+                    mPostsRecyclerView.disableLoadmore();
+                }
+                break;
+            case SUCCESS_EMPTY:
+                mPostsRecyclerView.disableLoadmore();
+                break;
+            default:
+                break;
         }
-        mPostsList.addAll(postsList);
-        mAdapter.refresh(mPostsList);
     }
 
     @Override

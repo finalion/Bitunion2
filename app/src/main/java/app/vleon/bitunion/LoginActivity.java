@@ -115,7 +115,8 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
             showProgress(true);
             BuAPI.setOuterNet();
             // TODO: 2015/11/5
-            mAPI.login("vleon", "fengliang20701159");
+//            mAPI.login("vleon", "fengliang20701159");
+            mAPI.login(username, password);
         }
     }
 
@@ -160,8 +161,15 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
         showProgress(false);
         switch (mAPI.getLoginResult()) {
             case SUCCESS:
+                Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
                 startActivity(intent);
+                break;
+            case IP_LOGGED:
+                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
     }
