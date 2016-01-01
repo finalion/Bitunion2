@@ -38,39 +38,16 @@ public class BuAPI {
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
             POST_URL, REQUEST_PROFILE, NEWPOST, NEWTHREAD;
-
-    private final int RETRY_GETTHREADS_FLAG = 1;
-    private final int RETRY_GETPOSTS_FLAG = 2;
-
-    public enum Result {
-        SUCCESS, // 返回数据成功，result字段为success
-        FAILURE, // 返回数据失败，result字段为failure
-        IP_LOGGED, //返回数据失败，msg字段为ip+logged
-        SUCCESS_EMPTY, // 返回数据成功，但字段没有数据
-        SESSIONLOGIN, // obsolete
-        NETWRONG, // 没有返回数据
-        NOTLOGIN, // api还未登录
-        NUMBER_ERROR,  // TO - FROM > 20
-        UNKNOWN,   //未知错误代码
-        NULL   //还未返回结果
-    }
-
     public static String URL_EMOTICON_IMAGE_PREFIX;
-//    public static String URL_EMOTICON_IMAGE_PREFIX;
-
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
     final boolean enableRefreshSession = true;
     final int maxRefreshCnt = 2; // 最多重试两次
+    private final int RETRY_GETTHREADS_FLAG = 1;
+    //    public static String URL_EMOTICON_IMAGE_PREFIX;
+    private final int RETRY_GETPOSTS_FLAG = 2;
+    public LoginInfo mLoginInfo;
     int mRetryCount = 0;
-
-    private RequestQueue mRequestQueue;
-    private OnLoginResponseListener mOnLoginResponseListener = null;
-    private OnThreadsResponseListener mOnThreadsResponseListener = null;
-    private OnPostsResponseListener mOnPostsResponseListener = null;
-    private Result mThreadsResult = Result.NULL;
-    private Result mPostsResult = Result.NULL;
-
     String mUsername, mPassword;
     String mSession;
     boolean isLogined;
@@ -80,19 +57,61 @@ public class BuAPI {
     int mPostsTid;
     int mPostsFrom;
     int mPostsTo;
-
-    public LoginInfo mLoginInfo;
     Context mContext;
-
     int flagCnt = 0;
     int mError = NONE;
     int mNetType;
-
-
+    private RequestQueue mRequestQueue;
+    private OnLoginResponseListener mOnLoginResponseListener = null;
+    private OnThreadsResponseListener mOnThreadsResponseListener = null;
+    private OnPostsResponseListener mOnPostsResponseListener = null;
+    private OnForumsResponseListener mOnForumsResponseListener = null;
+    private Result mThreadsResult = Result.NULL;
+    private Result mPostsResult = Result.NULL;
     public BuAPI(Context context) {
         mContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
         setNetType(OUTNET);
+    }
+
+    public static void setInnerNet() {
+        ROOTURL = "http://www.bitunion.org/";
+        buildUrls();
+    }
+
+    public static void setOuterNet() {
+        ROOTURL = "http://out.bitunion.org/";
+        buildUrls();
+    }
+
+    private static void buildUrls() {
+        BASEURL = ROOTURL + "open_api/";
+        LOGGING_URL = BASEURL + "bu_logging.php";
+        FORUM_URL = BASEURL + "bu_forum.php";
+        THREAD_URL = BASEURL + "bu_thread.php";
+        REQUEST_PROFILE = BASEURL + "bu_profile.php";
+        POST_URL = BASEURL + "bu_post.php";
+        NEWPOST = BASEURL + "bu_newpost.php";
+        NEWTHREAD = BASEURL + "bu_newpost.php";
+    }
+
+    public static String getImageAbsoluteUrl(String shortUrl) {
+        String path;
+        path = shortUrl;
+        path = path.replaceAll("(http://)?(www|v6|kiss|out).bitunion.org/", ROOTURL);
+        path = path.replaceAll("^images/", ROOTURL + "images/");
+        path = path.replaceAll("^attachments/", ROOTURL + "attachments/");
+        return path;
+    }
+
+    public static String formatTime(String timeStr) {
+        String format = "yyyy-MM-dd HH:mm";
+        return formatTime(timeStr, format);
+    }
+
+    public static String formatTime(String timeStr, String format) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.CHINA);
+        return dateFormat.format(new Date(Long.valueOf(timeStr) * 1000L));
     }
 
     public void setNetType(int net) {
@@ -136,28 +155,6 @@ public class BuAPI {
 
     public LoginInfo getLoginInfo() {
         return mLoginInfo;
-    }
-
-
-    public static void setInnerNet() {
-        ROOTURL = "http://www.bitunion.org/";
-        buildUrls();
-    }
-
-    public static void setOuterNet() {
-        ROOTURL = "http://out.bitunion.org/";
-        buildUrls();
-    }
-
-    private static void buildUrls() {
-        BASEURL = ROOTURL + "open_api/";
-        LOGGING_URL = BASEURL + "bu_logging.php";
-        FORUM_URL = BASEURL + "bu_forum.php";
-        THREAD_URL = BASEURL + "bu_thread.php";
-        REQUEST_PROFILE = BASEURL + "bu_profile.php";
-        POST_URL = BASEURL + "bu_post.php";
-        NEWPOST = BASEURL + "bu_newpost.php";
-        NEWTHREAD = BASEURL + "bu_newpost.php";
     }
 
     public void updateSession() {
@@ -215,6 +212,74 @@ public class BuAPI {
 
     public void login(String username, String password) {
         login(username, password, 0);
+    }
+
+    /**
+     * 查询论坛列表
+     */
+    public void getForumsList() {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("action", "forum");
+        params.put("username", mLoginInfo.username);
+        params.put("session", mLoginInfo.session);
+        final Gson gson = new Gson();
+        JsonObjectRequest threadsRequest = new JsonObjectRequest(FORUM_URL,
+                new JSONObject(params),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TAG", response.toString());
+                        try {
+                            String result = response.getString("result");
+                            if (result.equals("success")) {
+                                mRetryCount = 0;
+                                ArrayList<ThreadInfo> templist = null;
+                                if (response.has("forumslist")) {
+//                                    mThreadsResult = Result.SUCCESS;
+                                    String tmp = response.getJSONArray("forumslist").toString();
+                                    templist = gson.fromJson(tmp, new TypeToken<List<ThreadInfo>>() {
+                                    }.getType());
+                                } else {
+//                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
+                                }
+                                if (mOnForumsResponseListener != null)
+                                    mOnForumsResponseListener.handleForumsGetterResponse();
+                            } else {
+                                String msg = response.getString("msg");
+//                                switch (msg) {
+//                                    case "thread+number+error":
+//                                        mThreadsResult = Result.NUMBER_ERROR;
+//                                        break;
+//                                    case "IP+logged":
+//                                        // session失效时，返回该msg，需要重新获取session
+//                                        if (mRetryCount < 1) {
+//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+//                                            login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
+//                                        } else {
+//                                            //重试一次之后仍然返回IP LOGGED，不再重试
+//                                            mThreadsResult = Result.IP_LOGGED;
+//                                            mRetryCount = 0;
+//                                        }
+//                                        mRetryCount++;
+//                                        break;
+//                                    default:
+//                                        break;
+//                                }
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        if (mOnForumsResponseListener != null)
+                            mOnForumsResponseListener.handleForumsGetterErrorResponse(error);
+                    }
+                });
+        mRequestQueue.add(threadsRequest);
     }
 
     /**
@@ -388,10 +453,45 @@ public class BuAPI {
         mRequestQueue.add(postsRequest);
     }
 
+    public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
+        mOnLoginResponseListener = lrl;
+    }
+
+    public void setOnForumsResponseListener(OnForumsResponseListener frl) {
+        mOnForumsResponseListener = frl;
+    }
+
+    public void setOnThreadsResponseListener(OnThreadsResponseListener trl) {
+        mOnThreadsResponseListener = trl;
+    }
+
+    public void setOnPostsResponseListener(OnPostsResponseListener prl) {
+        mOnPostsResponseListener = prl;
+    }
+
+    public enum Result {
+        SUCCESS, // 返回数据成功，result字段为success
+        FAILURE, // 返回数据失败，result字段为failure
+        IP_LOGGED, //返回数据失败，msg字段为ip+logged
+        SUCCESS_EMPTY, // 返回数据成功，但字段没有数据
+        SESSIONLOGIN, // obsolete
+        NETWRONG, // 没有返回数据
+        NOTLOGIN, // api还未登录
+        NUMBER_ERROR,  // TO - FROM > 20
+        UNKNOWN,   //未知错误代码
+        NULL   //还未返回结果
+    }
+
     public interface OnLoginResponseListener {
         void handleLoginResponse();
 
         void handleLoginErrorResponse(VolleyError error);
+    }
+
+    public interface OnForumsResponseListener {
+        void handleForumsGetterResponse();
+
+        void handleForumsGetterErrorResponse(VolleyError error);
     }
 
     public interface OnThreadsResponseListener {
@@ -404,37 +504,6 @@ public class BuAPI {
         void handlePostsGetterResponse(Result result, ArrayList<PostInfo> postsList);
 
         void handlePostsGetterErrorResponse(VolleyError error);
-    }
-
-    public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
-        mOnLoginResponseListener = lrl;
-    }
-
-    public void setOnThreadsResponseListener(OnThreadsResponseListener lrl) {
-        mOnThreadsResponseListener = lrl;
-    }
-
-    public void setOnPostsResponseListener(OnPostsResponseListener lrl) {
-        mOnPostsResponseListener = lrl;
-    }
-
-    public static String getImageAbsoluteUrl(String shortUrl) {
-        String path;
-        path = shortUrl;
-        path = path.replaceAll("(http://)?(www|v6|kiss|out).bitunion.org/", ROOTURL);
-        path = path.replaceAll("^images/", ROOTURL + "images/");
-        path = path.replaceAll("^attachments/", ROOTURL + "attachments/");
-        return path;
-    }
-
-    public static String formatTime(String timeStr) {
-        String format = "yyyy-MM-dd HH:mm";
-        return formatTime(timeStr, format);
-    }
-
-    public static String formatTime(String timeStr, String format) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.CHINA);
-        return dateFormat.format(new Date(Long.valueOf(timeStr) * 1000L));
     }
 
     public class LoginInfo {
@@ -477,8 +546,14 @@ public class BuAPI {
         public String score;
         public String rate;
         public String ratetimes;
-        String pstatus;
         public String lastedit;
+        public String uid;
+        public String username;
+        public String avatar;
+        public String content;
+        public String trueAvatar;
+        public ArrayList<Quote> quotes;
+        String pstatus;
         String aaid;
         String creditsrequire;
         String filetype;
@@ -486,15 +561,8 @@ public class BuAPI {
         String attachment;
         String filesize;
         String downloads;
-        public String uid;
-        public String username;
-        public String avatar;
         String epid;
         String maskpost;
-        public String content;
-        public String trueAvatar;
-
-        public ArrayList<Quote> quotes;
 
         public void parse() {
             try {
@@ -574,5 +642,20 @@ public class BuAPI {
             quoteContent = content;
         }
     }
+
+//    public class BuForum {
+//        public String type;
+//        public String fid;
+//        public String fup;
+//        public String name;
+//        public String icon;
+//        public String description;
+//        public String moderator;
+//        public String threads;
+//        public String posts;
+//        public String onlines;
+//    }
+
+
 }
 

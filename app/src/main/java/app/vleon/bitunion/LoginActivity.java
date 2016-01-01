@@ -115,8 +115,8 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
             showProgress(true);
             BuAPI.setOuterNet();
             // TODO: 2015/11/5
-//            mAPI.login("vleon", "fengliang20701159");
-            mAPI.login(username, password);
+            mAPI.login("vleon", "fengliang20701159");
+//            mAPI.login(username, password);
         }
     }
 

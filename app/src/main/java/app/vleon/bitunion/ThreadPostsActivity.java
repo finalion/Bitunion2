@@ -1,11 +1,12 @@
 package app.vleon.bitunion;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,19 +21,19 @@ import java.util.ArrayList;
 import app.vleon.buapi.BuAPI;
 import app.vleon.ui.DividerItemDecoration;
 
-public class ThreadPostsActivity extends Activity implements BuAPI.OnPostsResponseListener {
+public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener {
 
     public static RequestQueue mRequestQueue;
     public static BuAPI.LoginInfo mLoginInfo;
 
     public BuAPI mAPI;
-    private UltimateRecyclerView mPostsRecyclerView;
-    private RecyclerView.LayoutManager mLayoutManager;
-    private ThreadPostsAdapter mAdapter;
     ArrayList<BuAPI.PostInfo> mPostsList;
     int mFrom = 0;
     int mTo = 20;
     int mTid = 0;
+    private UltimateRecyclerView mPostsRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private ThreadPostsAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +42,11 @@ public class ThreadPostsActivity extends Activity implements BuAPI.OnPostsRespon
 
         mAPI = LoginActivity.mAPI;
         mPostsList = new ArrayList<>();
+
+        //设置toolbar
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar2);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPostsRecyclerView = (UltimateRecyclerView) findViewById(R.id.posts_recycler_view);
         // use this setting to improve performance if you know that changes

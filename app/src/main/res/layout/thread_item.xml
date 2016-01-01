@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="4dp"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
     android:layout_marginTop="2dp"
     card_view:cardBackgroundColor="@color/cardview_light_background"
     card_view:cardCornerRadius="1dp">
@@ -13,10 +13,10 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
-        android:paddingLeft="11dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="12dp"
         android:paddingRight="7dp"
-        android:paddingTop="9dp">
+        android:paddingTop="12dp">
 
         <TextView
             android:id="@+id/subject_textview"
@@ -31,8 +31,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_below="@id/subject_textview"
-            android:gravity="center"
             android:layout_marginTop="5dp"
+            android:gravity="center"
             android:padding="1dp">
 
             <TextView
@@ -50,10 +50,10 @@
                 android:id="@+id/view_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/views_count_textview"
                 android:layout_marginEnd="2dp"
-                android:background="@drawable/ic_visibility_black_18dp"
-                android:alpha="0.4" />
+                android:layout_toStartOf="@+id/views_count_textview"
+                android:alpha="0.4"
+                android:background="@drawable/ic_visibility_black_18dp" />
 
             <TextView
                 android:id="@+id/views_count_textview"
@@ -65,10 +65,10 @@
                 android:id="@+id/comment_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/comments_count_textview"
                 android:layout_marginEnd="2dp"
-                android:background="@drawable/ic_email_black_18dp"
-                android:alpha="0.4" />
+                android:layout_toStartOf="@+id/comments_count_textview"
+                android:alpha="0.4"
+                android:background="@drawable/ic_email_black_18dp" />
 
             <TextView
                 android:id="@+id/comments_count_textview"
