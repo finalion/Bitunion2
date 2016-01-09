@@ -27,8 +27,17 @@ public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callba
 
     private final Set<ImageGetterViewTarget> mTargets;
 
+    public GlideImageGetter(Context context, TextView textView) {
+        this.mContext = context;
+        this.mTextView = textView;
+
+        clear();
+        mTargets = new HashSet<>();
+        mTextView.setTag(R.id.choice, this);
+    }
+
     public static GlideImageGetter get(View view) {
-        return (GlideImageGetter) view.getTag(R.id.book_now);
+        return (GlideImageGetter) view.getTag(R.id.choice);
     }
 
     public void clear() {
@@ -38,15 +47,6 @@ public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callba
         for (ImageGetterViewTarget target : prev.mTargets) {
             Glide.clear(target);
         }
-    }
-
-    public GlideImageGetter(Context context, TextView textView) {
-        this.mContext = context;
-        this.mTextView = textView;
-
-        clear();
-        mTargets = new HashSet<>();
-        mTextView.setTag(R.id.book_now, this);
     }
 
     @Override
@@ -85,6 +85,7 @@ public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callba
     private class ImageGetterViewTarget extends ViewTarget<TextView, GlideDrawable> {
 
         private final UrlDrawable mDrawable;
+        private Request request;
 
         private ImageGetterViewTarget(TextView view, UrlDrawable drawable) {
             super(view);
@@ -131,8 +132,6 @@ public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callba
             getView().setText(getView().getText());
             getView().invalidate();
         }
-
-        private Request request;
 
         @Override
         public Request getRequest() {

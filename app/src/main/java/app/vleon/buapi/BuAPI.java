@@ -37,7 +37,7 @@ public class BuAPI {
     // {"result":"fail","msg":"IP+logged"}
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
-            POST_URL, REQUEST_PROFILE, NEWPOST, NEWTHREAD;
+            POST_URL, PROFILE_URL, NEWPOST, NEWTHREAD;
     public static String URL_EMOTICON_IMAGE_PREFIX;
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
@@ -66,8 +66,10 @@ public class BuAPI {
     private OnThreadsResponseListener mOnThreadsResponseListener = null;
     private OnPostsResponseListener mOnPostsResponseListener = null;
     private OnForumsResponseListener mOnForumsResponseListener = null;
+    private OnMemberInfoResponseListener mOnMemberInfoResponseListener = null;
     private Result mThreadsResult = Result.NULL;
     private Result mPostsResult = Result.NULL;
+
     public BuAPI(Context context) {
         mContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
@@ -89,7 +91,7 @@ public class BuAPI {
         LOGGING_URL = BASEURL + "bu_logging.php";
         FORUM_URL = BASEURL + "bu_forum.php";
         THREAD_URL = BASEURL + "bu_thread.php";
-        REQUEST_PROFILE = BASEURL + "bu_profile.php";
+        PROFILE_URL = BASEURL + "bu_profile.php";
         POST_URL = BASEURL + "bu_post.php";
         NEWPOST = BASEURL + "bu_newpost.php";
         NEWTHREAD = BASEURL + "bu_newpost.php";
@@ -125,7 +127,7 @@ public class BuAPI {
         LOGGING_URL = BASEURL + "bu_logging.php";
         FORUM_URL = BASEURL + "bu_forum.php";
         THREAD_URL = BASEURL + "bu_thread.php";
-        REQUEST_PROFILE = BASEURL + "bu_profile.php";
+        PROFILE_URL = BASEURL + "bu_profile.php";
         POST_URL = BASEURL + "bu_post.php";
         NEWPOST = BASEURL + "bu_newpost.php";
         NEWTHREAD = BASEURL + "bu_newpost.php";
@@ -212,6 +214,58 @@ public class BuAPI {
 
     public void login(String username, String password) {
         login(username, password, 0);
+    }
+
+    /**
+     * 查询用户信息
+     */
+    public void getMemberInfo(String username) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("action", "profile");
+        params.put("username", mLoginInfo.username);
+        params.put("session", mLoginInfo.session);
+        params.put("uid", mLoginInfo.uid);
+        params.put("queryusername", username);
+        final Gson gson = new Gson();
+        JsonObjectRequest threadsRequest = new JsonObjectRequest(PROFILE_URL,
+                new JSONObject(params), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d("TAG", response.toString());
+                try {
+                    String result = response.getString("result");
+                    if (result.equals("success")) {
+                        mRetryCount = 0;
+                        MemberInfo memberInfo = null;
+                        if (response.has("memberinfo")) {
+                            String tmp = response.getJSONObject("memberinfo").toString();
+                            memberInfo = gson.fromJson(tmp, MemberInfo.class);
+                        } else {
+//                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
+                        }
+                        if (mOnMemberInfoResponseListener != null)
+                            mOnMemberInfoResponseListener.handleMemberInfoGetterResponse(Result.SUCCESS,
+                                    memberInfo);
+                    } else {
+                        String msg = response.getString("msg");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+    }
+
+    /**
+     * 查询当前用户信息
+     */
+    public void getMyInfo() {
+        getMemberInfo(mLoginInfo.username);
     }
 
     /**
@@ -488,6 +542,12 @@ public class BuAPI {
         void handleLoginErrorResponse(VolleyError error);
     }
 
+    public interface OnMemberInfoResponseListener {
+        void handleMemberInfoGetterResponse(Result result, MemberInfo memberInfo);
+
+        void handleMemberInfoGetterErrorResponse(VolleyError error);
+    }
+
     public interface OnForumsResponseListener {
         void handleForumsGetterResponse();
 
@@ -515,6 +575,22 @@ public class BuAPI {
         public String credit;
         public String lastactivity;
         public String msg; // TODO: 2015/11/6
+    }
+
+    public class MemberInfo {
+        public String uid;
+        public String status;
+        public String username;
+        public String avatar;
+        public String credit;
+        public String regdate;
+        public String lastvisit;
+        public String bday;
+        public String signature;
+        public String postnum;
+        public String threadnum;
+        public String email;
+        public String qq;
     }
 
     public class ThreadInfo {

@@ -1,9 +1,7 @@
 package app.vleon.bitunion;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,23 +9,26 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
-import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
-import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
-import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
-import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
-import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
+import com.mikepenz.materialdrawer.AccountHeader;
+import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.SectionDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
 import java.util.ArrayList;
 
@@ -37,21 +38,15 @@ import app.vleon.buapi.BuForum;
 public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener {
 
     public BuAPI mAPI;
-    // 所有论坛列表数据
-    ArrayList<ArrayList<BuForum>> fArrayList = new ArrayList<>();
     // ExpandableListView的分组信息
     String[] groupList;
     ArrayList<BuAPI.ThreadInfo> mThreadsList;
+    BuForum mCurrentForum;
+    int mCurrentForumId;
     int mFrom = 0;
     int mTo = 20;
     /*Left Drawer*/
-    private DrawerLayout mDrawLayout;
-    private RecyclerView mDrawerRecyclerView;
     private ActionBarDrawerToggle mDrawerToggle;
-    private RecyclerView.LayoutManager mDrawerLayoutManager;
-    private RecyclerView.Adapter mDrawerAdapter;
-    private RecyclerView.Adapter mDrawerWrappedAdapter;
-    private RecyclerViewExpandableItemManager mDrawerRecyclerViewExpandableItemManager;
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -64,57 +59,11 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
         mAPI = LoginActivity.mAPI;
         mThreadsList = new ArrayList<>();
+        mCurrentForumId = 14;    //默认论坛
 
         //设置toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
-
-        //设置left drawer
-        groupList = getResources().getStringArray(R.array.forum_group);
-        getForumArrayListFromResources();
-        mDrawLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
-        mDrawerLayoutManager = new LinearLayoutManager(this);
-        mDrawerRecyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
-        ForumListAdapter itemAdapter = new ForumListAdapter();
-        mDrawerAdapter = itemAdapter;
-        mDrawerWrappedAdapter = mDrawerRecyclerViewExpandableItemManager.createWrappedAdapter(itemAdapter);
-
-        final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
-        mDrawerRecyclerView.setLayoutManager(mDrawerLayoutManager);
-        mDrawerRecyclerView.setAdapter(mDrawerWrappedAdapter);  // requires *wrapped* adapter
-        mDrawerRecyclerView.setItemAnimator(animator);
-        mDrawerRecyclerView.setHasFixedSize(false);
-        mDrawerRecyclerViewExpandableItemManager.attachRecyclerView(mDrawerRecyclerView);
-
-//        String[] strings = {"122", "dff", "333", "444"};
-//        mDrawerRecyclerView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings));
-//        mDrawerRecyclerView.setOnItemClickListener(null);
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawLayout, R.string.abc_action_bar_home_description, R.string.abc_action_bar_up_description) {
-            /**
-             * Called when a drawer has settled in a completely closed state.
-             */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-//                getSupportActionBar().setTitle("灌水乐园");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-
-            /**
-             * Called when a drawer has settled in a completely open state.
-             */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle("北理FTP联盟");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-        };
-        mDrawLayout.setDrawerListener(mDrawerToggle);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-//        getWindow().getDecorView().setSystemUiVisibility(
-//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         //设置主界面
         mThreadsRecyclerView = (UltimateRecyclerView) findViewById(R.id.threads_recycler_view);
@@ -131,14 +80,14 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         mThreadsRecyclerView.setAdapter(mAdapter);
 
-        LoginActivity.mAPI.getThreadsList(14, mFrom, mTo);
+        LoginActivity.mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
 
         mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
-                mAPI.getThreadsList(14, mFrom, mTo);
+                mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
             }
         });
 
@@ -148,7 +97,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 mThreadsList.clear();
                 mFrom = 0;
                 mTo = 20;
-                mAPI.getThreadsList(14, mFrom, mTo);
+                mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
             }
         });
         mAdapter.setOnItemClickedListener(new ThreadsAdapter.OnRecyclerViewItemClickListener() {
@@ -161,21 +110,77 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         });
         mAPI.setOnThreadsResponseListener(this);
 
+        //设置left drawer
+        // Create the AccountHeader
+        AccountHeader headerResult = new AccountHeaderBuilder()
+                .withActivity(this)
+                .withHeaderBackground(R.drawable.header)
+                .addProfiles(
+                        new ProfileDrawerItem().withName("Mike Penz").withEmail("mikepenz@gmail.com").withIcon(getResources().getDrawable(R.drawable.profile))
+                )
+                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+                    @Override
+                    public boolean onProfileChanged(View view, IProfile profile, boolean currentProfile) {
+                        return false;
+                    }
+                })
+                .build();
+
+        Drawer mDrawerResult = new DrawerBuilder()
+                .withActivity(this)
+                .withToolbar(mToolbar)
+                .withActionBarDrawerToggle(true)
+                .withActionBarDrawerToggleAnimated(true)
+                .withAccountHeader(headerResult)
+                .addDrawerItems(
+                        new PrimaryDrawerItem().withName("最新帖子").withTag(0),
+                        new DividerDrawerItem(),
+                        new SectionDrawerItem().withName("收藏夹"),
+                        new DividerDrawerItem(),
+                        new SectionDrawerItem().withName("苦中作乐区").withTag(13),
+                        new SecondaryDrawerItem().withName("游戏人生").withTag(22),
+                        new SecondaryDrawerItem().withName("影视天地").withTag(23),
+                        new SecondaryDrawerItem().withName("音乐殿堂").withTag(25),
+                        new SecondaryDrawerItem().withName("灌水乐园").withTag(14),
+                        new SecondaryDrawerItem().withName("贴图欣赏").withTag(24),
+                        new SecondaryDrawerItem().withName("动漫天空").withTag(27),
+                        new SecondaryDrawerItem().withName("体坛风云").withTag(115),
+                        new SecondaryDrawerItem().withName("职场生涯").withTag(124),
+                        new SectionDrawerItem().withName("技术讨论区").withTag(16),
+                        new SectionDrawerItem().withName("直通理工区").withTag(129),
+                        new SectionDrawerItem().withName("时尚生活区").withTag(166),
+                        new SectionDrawerItem().withName("系统管理区").withTag(2),
+                        new SectionDrawerItem().withName("其他功能").withTag(5)
+                )
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        Log.d("tag", drawerItem.getTag().toString());
+                        mThreadsList.clear();
+                        mCurrentForumId = Integer.parseInt(String.valueOf(drawerItem.getTag()));
+                        LoginActivity.mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
+                        getSupportActionBar().setTitle(drawerItem.getTag().toString());
+                        return false;
+                    }
+                })
+                .build();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
 //        mAPI.getForumsList();
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
+//    @Override
+//    protected void onPostCreate(Bundle savedInstanceState) {
+//        super.onPostCreate(savedInstanceState);
+//        // Sync the toggle state after onRestoreInstanceState has occurred.
+//        mDrawerToggle.syncState();
+//    }
+//
+//    @Override
+//    public void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        mDrawerToggle.onConfigurationChanged(newConfig);
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -203,7 +208,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
             mThreadsList.clear();
             mFrom = 0;
             mTo = 20;
-            mAPI.getThreadsList(14, mFrom, mTo);
+            mAPI.getThreadsList(mCurrentForum.getFid(), mFrom, mTo);
             return true;
         }
 
@@ -228,145 +233,4 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         Toast.makeText(ThreadsActivity.this, "查询异常", Toast.LENGTH_SHORT).show();
     }
 
-    public ArrayList<ArrayList<BuForum>> getForumArrayListFromResources() {
-        // 单组论坛列表数据
-        ArrayList<BuForum> forumList = new ArrayList<BuForum>();
-//        // 所有论坛列表数据
-//        ArrayList<ArrayList<BuForum>> fArrayList = new ArrayList<ArrayList<BuForum>>();
-//        // 分组数据
-//        String[] groupList;
-//        // ExpandableListView的分组信息
-//        groupList = getResources().getStringArray(R.array.forum_group);
-
-        // 读取论坛列表信息
-        String[] forumNames = getResources().getStringArray(R.array.forums);
-        int[] forumFids = getResources().getIntArray(R.array.fids);
-        int[] forumTypes = getResources().getIntArray(R.array.types);
-        for (int i = 0; i < forumNames.length; i++)
-            forumList.add(new BuForum(forumNames[i], forumFids[i], forumTypes[i]));
-        // 转换论坛列表信息为二维数组，方便ListViewAdapter读入
-        for (int i = 0; i < groupList.length; i++) {
-            ArrayList<BuForum> forums = new ArrayList<BuForum>();
-            for (BuForum forum : forumList)
-                if (i == forum.getType())
-                    forums.add(forum);
-            fArrayList.add(forums);
-        }
-        return fArrayList;
-    }
-
-    private static class GroupViewHolder extends AbstractExpandableItemViewHolder {
-        ImageView indicator;
-        TextView groupName;
-
-        private GroupViewHolder(View itemView) {
-            super(itemView);
-            indicator = (ImageView) itemView.findViewById(R.id.imgVw_group_expand_indicator);
-            groupName = (TextView) itemView.findViewById(R.id.txtVw_group_title);
-        }
-    }
-
-    private static class ChildViewHolder extends AbstractExpandableItemViewHolder {
-        TextView childTitle;
-
-        private ChildViewHolder(View itemView) {
-            super(itemView);
-            childTitle = (TextView) itemView.findViewById(R.id.txtVw_forum_title);
-        }
-    }
-
-    private class ForumListAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ChildViewHolder> {
-
-        private ForumListAdapter() {
-            setHasStableIds(true);
-        }
-
-        @Override
-        public int getGroupCount() {
-            return groupList.length;
-        }
-
-        @Override
-        public int getChildCount(int groupPosition) {
-            return fArrayList.get(groupPosition).size();
-        }
-
-        @Override
-        public long getGroupId(int groupPos) {
-            return groupPos;
-        }
-
-        @Override
-        public long getChildId(int groupPos, int childPos) {
-            return childPos;
-        }
-
-        @Override
-        public int getGroupItemViewType(int i) {
-            return 0;
-        }
-
-        @Override
-        public int getChildItemViewType(int i, int i1) {
-            return 0;
-        }
-
-        @Override
-        public GroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_forum_group, parent, false);
-            return new GroupViewHolder(view);
-        }
-
-        @Override
-        public ChildViewHolder onCreateChildViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_forum_title, parent, false);
-            return new ChildViewHolder(view);
-        }
-
-        @Override
-        public void onBindGroupViewHolder(GroupViewHolder groupVH, int groupPosition, int viewType) {
-            groupVH.groupName.setText(groupList[groupPosition]);
-            groupVH.itemView.setClickable(true);
-        }
-
-        @Override
-        public void onBindChildViewHolder(ChildViewHolder childViewHolder, int groupPos, int childPos, int viewType) {
-            if (fArrayList.get(groupPos).get(childPos).getName().contains("--"))
-                childViewHolder.childTitle.setTextSize(16);
-            else
-                childViewHolder.childTitle.setTextSize(18);
-            childViewHolder.childTitle.setText(fArrayList.get(groupPos).get(childPos).getName());
-            final BuForum forum = fArrayList.get(groupPos).get(childPos);
-            childViewHolder.childTitle.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                @SuppressWarnings("NewApi")
-                public void onClick(View v) {
-                    mThreadsList.clear();
-                    mFrom = 0;
-                    mTo = 20;
-//                    Toast.makeText(ThreadsActivity.this, "click", Toast.LENGTH_SHORT).show();
-//                    if (BUApi.isUserLoggedin()) {
-                    if (forum.getFid() == -1) {
-//                        LoginActivity.mAPI.getThreadsList(forum.getFid(), mFrom, mTo);
-                    } else if (forum.getFid() == -2) {
-                        // TODO 收藏夹
-//                        ToastUtil.showToast("功能暂时无法使用");
-                    } else {
-                        LoginActivity.mAPI.getThreadsList(forum.getFid(), mFrom, mTo);
-                        getSupportActionBar().setTitle(forum.getName());
-                        mDrawLayout.closeDrawer(Gravity.LEFT);
-                    }
-//                    } else
-//                        ToastUtil.showToast("请先登录");
-                }
-            });
-        }
-
-        @Override
-        public boolean onCheckCanExpandOrCollapseGroup(GroupViewHolder groupVH, int groupPosition, int x, int y, boolean expand) {
-            groupVH.indicator.setImageResource(expand ? R.drawable.ic_expand_more_grey600_48dp : R.drawable.ic_expand_less_grey600_48dp);
-            return true;
-        }
-    }
 }
