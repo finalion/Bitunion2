@@ -227,7 +227,7 @@ public class BuAPI {
         params.put("uid", mLoginInfo.uid);
         params.put("queryusername", username);
         final Gson gson = new Gson();
-        JsonObjectRequest threadsRequest = new JsonObjectRequest(PROFILE_URL,
+        final JsonObjectRequest memberInfoRequest = new JsonObjectRequest(PROFILE_URL,
                 new JSONObject(params), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -252,6 +252,7 @@ public class BuAPI {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
             }
         }, new Response.ErrorListener() {
             @Override
@@ -259,6 +260,7 @@ public class BuAPI {
 
             }
         });
+        mRequestQueue.add(memberInfoRequest);
     }
 
     /**
@@ -511,6 +513,10 @@ public class BuAPI {
         mOnLoginResponseListener = lrl;
     }
 
+    public void setOnMemberInfoResponseListener(OnMemberInfoResponseListener mrl) {
+        mOnMemberInfoResponseListener = mrl;
+    }
+
     public void setOnForumsResponseListener(OnForumsResponseListener frl) {
         mOnForumsResponseListener = frl;
     }
@@ -591,6 +597,24 @@ public class BuAPI {
         public String threadnum;
         public String email;
         public String qq;
+
+
+        //得到头像真实的URL
+        public String getTrueAvatar() {
+            try {
+                avatar = URLDecoder.decode(avatar, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                return "";
+            }
+            if (avatar.startsWith("http://")) {
+                avatar = avatar.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
+                avatar = avatar.replace("http://bitunion.org", "http://out.bitunion.org");
+                return avatar;
+            } else {
+                return BuAPI.ROOTURL + avatar;
+            }
+        }
     }
 
     public class ThreadInfo {

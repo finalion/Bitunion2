@@ -88,6 +88,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
                 mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
+                Log.d("avatar", LoginActivity.mMyInfo.getTrueAvatar());
+                Toast.makeText(ThreadsActivity.this, LoginActivity.mMyInfo.getTrueAvatar(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -116,7 +118,10 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
-                        new ProfileDrawerItem().withName("Mike Penz").withEmail("mikepenz@gmail.com").withIcon(getResources().getDrawable(R.drawable.profile))
+                        new ProfileDrawerItem()
+                                .withName(LoginActivity.mMyInfo.username)
+                                .withEmail(LoginActivity.mMyInfo.postnum)
+                                .withIcon(LoginActivity.mMyInfo.getTrueAvatar())
                 )
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
@@ -124,6 +129,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                         return false;
                     }
                 })
+
                 .build();
 
         Drawer mDrawerResult = new DrawerBuilder()
@@ -138,14 +144,14 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                         new SectionDrawerItem().withName("收藏夹"),
                         new DividerDrawerItem(),
                         new SectionDrawerItem().withName("苦中作乐区").withTag(13),
-                        new SecondaryDrawerItem().withName("游戏人生").withTag(22),
-                        new SecondaryDrawerItem().withName("影视天地").withTag(23),
-                        new SecondaryDrawerItem().withName("音乐殿堂").withTag(25),
-                        new SecondaryDrawerItem().withName("灌水乐园").withTag(14),
-                        new SecondaryDrawerItem().withName("贴图欣赏").withTag(24),
-                        new SecondaryDrawerItem().withName("动漫天空").withTag(27),
-                        new SecondaryDrawerItem().withName("体坛风云").withTag(115),
-                        new SecondaryDrawerItem().withName("职场生涯").withTag(124),
+                        new SecondaryDrawerItem().withName("游戏人生").withTag(22).withLevel(2),
+                        new SecondaryDrawerItem().withName("影视天地").withTag(23).withLevel(2),
+                        new SecondaryDrawerItem().withName("音乐殿堂").withTag(25).withLevel(2),
+                        new SecondaryDrawerItem().withName("灌水乐园").withTag(14).withLevel(2),
+                        new SecondaryDrawerItem().withName("贴图欣赏").withTag(24).withLevel(2),
+                        new SecondaryDrawerItem().withName("动漫天空").withTag(27).withLevel(2),
+                        new SecondaryDrawerItem().withName("体坛风云").withTag(115).withLevel(2),
+                        new SecondaryDrawerItem().withName("职场生涯").withTag(124).withLevel(2),
                         new SectionDrawerItem().withName("技术讨论区").withTag(16),
                         new SectionDrawerItem().withName("直通理工区").withTag(129),
                         new SectionDrawerItem().withName("时尚生活区").withTag(166),

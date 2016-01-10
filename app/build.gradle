@@ -35,4 +35,5 @@ dependencies {
     compile('com.mikepenz:materialdrawer:4.6.3@aar') {
         transitive = true
     }
+    compile 'com.mikepenz:iconics-core:2.5.3@aar'
 }
