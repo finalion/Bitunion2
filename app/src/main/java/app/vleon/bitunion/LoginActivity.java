@@ -27,12 +27,7 @@ import app.vleon.buapi.BuAPI;
  */
 public class LoginActivity extends Activity implements BuAPI.OnLoginResponseListener, BuAPI.OnMemberInfoResponseListener {
 
-    public static BuAPI mAPI;
-    public static BuAPI.MemberInfo mMyInfo;
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    public static BuAPI.LoginInfo mLoginInfo;
+    MyApplication app;
 
     // UI references.
     private EditText mUsernameView;
@@ -44,7 +39,7 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        app = (MyApplication) getApplicationContext();
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -70,9 +65,8 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        mAPI = new BuAPI(this);
-        mAPI.setOnLoginResponseListener(this);
-        mAPI.setOnMemberInfoResponseListener(this);
+        app.getAPI().setOnLoginResponseListener(this);
+        app.getAPI().setOnMemberInfoResponseListener(this);
     }
 
     /**
@@ -117,7 +111,7 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
             showProgress(true);
             BuAPI.setOuterNet();
             // TODO: 2015/11/5
-            mAPI.login("vleon", "fengliang20701159");
+            app.getAPI().login("vleon", "fengliang20701159");
 //            mAPI.login(username, password);
         }
     }
@@ -161,9 +155,9 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
     @Override
     public void handleLoginResponse() {
         showProgress(false);
-        switch (mAPI.getLoginResult()) {
+        switch (app.getAPI().getLoginResult()) {
             case SUCCESS:
-                mAPI.getMyInfo();
+                app.getAPI().getMyInfo();
                 Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
 //                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
 //                startActivity(intent);
@@ -172,7 +166,7 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
                 Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
                 break;
             default:
-                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "未知登录错误: " + app.getAPI().getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
     }
@@ -188,7 +182,7 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
     public void handleMemberInfoGetterResponse(BuAPI.Result result, BuAPI.MemberInfo memberInfo) {
         switch (result) {
             case SUCCESS:
-                mMyInfo = memberInfo;
+                app.setMyInfo(memberInfo);
                 Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
                 startActivity(intent);
                 break;

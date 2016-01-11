@@ -25,8 +25,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
     public static RequestQueue mRequestQueue;
     public static BuAPI.LoginInfo mLoginInfo;
-
-    public BuAPI mAPI;
+    MyApplication app;
     ArrayList<BuAPI.PostInfo> mPostsList;
     int mFrom = 0;
     int mTo = 20;
@@ -39,8 +38,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thread_posts);
-
-        mAPI = LoginActivity.mAPI;
+        app = (MyApplication) getApplicationContext();
         mPostsList = new ArrayList<>();
 
         //设置toolbar
@@ -65,7 +63,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         String tid = intent.getStringExtra("tid");
         if (tid != null) {
             mTid = Integer.parseInt(tid);
-            mAPI.getThreadPosts(mTid, mFrom, mTo);
+            app.getAPI().getThreadPosts(mTid, mFrom, mTo);
         } else {
             Toast.makeText(this, "获取帖子ID失败", Toast.LENGTH_SHORT).show();
         }
@@ -76,7 +74,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
-                mAPI.getThreadPosts(mTid, mFrom, mTo);
+                app.getAPI().getThreadPosts(mTid, mFrom, mTo);
             }
         });
         mPostsRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -85,11 +83,11 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
                 mPostsList.clear();
                 mFrom = 0;
                 mTo = 20;
-                mAPI.getThreadPosts(mTid, mFrom, mTo);
+                app.getAPI().getThreadPosts(mTid, mFrom, mTo);
             }
         });
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
-        mAPI.setOnPostsResponseListener(this);
+        app.getAPI().setOnPostsResponseListener(this);
     }
 
     @Override
@@ -111,7 +109,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
             mPostsList.clear();
             mFrom = 0;
             mTo = 20;
-            mAPI.getThreadPosts(mTid, mFrom, mTo);
+            app.getAPI().getThreadPosts(mTid, mFrom, mTo);
             return true;
         }
 

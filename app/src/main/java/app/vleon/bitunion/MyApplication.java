@@ -12,14 +12,20 @@ import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 
+import app.vleon.buapi.BuAPI;
+
 /**
  * Created by vleon on 2016/1/10.
  */
 public class MyApplication extends Application {
 
-    @Override
+    private BuAPI mAPI = null;
+    private BuAPI.MemberInfo mMyInfo = null;
+    private BuAPI.LoginInfo mLoginInfo = null;
     public void onCreate() {
         super.onCreate();
+
+        mAPI = new BuAPI(this);
 
         /*
         //initialize and create the image loader logic
@@ -67,5 +73,25 @@ public class MyApplication extends Application {
                 return super.placeholder(ctx, tag);
             }
         });
+    }
+
+    public BuAPI getAPI() {
+        return mAPI;
+    }
+
+    public BuAPI.MemberInfo getMyInfo() {
+        return mMyInfo;
+    }
+
+    public void setMyInfo(BuAPI.MemberInfo info) {
+        mMyInfo = info;
+    }
+
+    public BuAPI.LoginInfo getLoginInfo() {
+        return mLoginInfo;
+    }
+
+    public void setLoginInfo(BuAPI.LoginInfo info) {
+        mLoginInfo = info;
     }
 }

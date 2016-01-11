@@ -22,7 +22,6 @@ import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
@@ -37,14 +36,14 @@ import app.vleon.buapi.BuForum;
 
 public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener {
 
-    public BuAPI mAPI;
-    // ExpandableListView的分组信息
-    String[] groupList;
+    MyApplication app;
+
     ArrayList<BuAPI.ThreadInfo> mThreadsList;
     BuForum mCurrentForum;
     int mCurrentForumId;
     int mFrom = 0;
     int mTo = 20;
+    Drawer mDrawerResult = null;
     /*Left Drawer*/
     private ActionBarDrawerToggle mDrawerToggle;
     /*Main ListView*/
@@ -52,12 +51,13 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private RecyclerView.LayoutManager mLayoutManager;
     private ThreadsAdapter mAdapter;
 
+    private boolean opened = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threads);
-
-        mAPI = LoginActivity.mAPI;
+        app = (MyApplication) getApplicationContext();
         mThreadsList = new ArrayList<>();
         mCurrentForumId = 14;    //默认论坛
 
@@ -80,16 +80,15 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         mThreadsRecyclerView.setAdapter(mAdapter);
 
-        LoginActivity.mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
 
         mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
-                mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
-                Log.d("avatar", LoginActivity.mMyInfo.getTrueAvatar());
-                Toast.makeText(ThreadsActivity.this, LoginActivity.mMyInfo.getTrueAvatar(), Toast.LENGTH_SHORT).show();
+                app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
+                Log.d("avatar", app.getMyInfo().getTrueAvatar());
+                Toast.makeText(ThreadsActivity.this, app.getMyInfo().getTrueAvatar(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -99,7 +98,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 mThreadsList.clear();
                 mFrom = 0;
                 mTo = 20;
-                mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
+                app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
             }
         });
         mAdapter.setOnItemClickedListener(new ThreadsAdapter.OnRecyclerViewItemClickListener() {
@@ -110,7 +109,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 startActivity(intent);
             }
         });
-        mAPI.setOnThreadsResponseListener(this);
+        app.getAPI().setOnThreadsResponseListener(this);
 
         //设置left drawer
         // Create the AccountHeader
@@ -119,9 +118,9 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
                         new ProfileDrawerItem()
-                                .withName(LoginActivity.mMyInfo.username)
-                                .withEmail(LoginActivity.mMyInfo.postnum)
-                                .withIcon(LoginActivity.mMyInfo.getTrueAvatar())
+                                .withName(app.getMyInfo().username)
+                                .withEmail(app.getMyInfo().postnum)
+                                .withIcon(app.getMyInfo().getTrueAvatar())
                 )
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
@@ -132,7 +131,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
                 .build();
 
-        Drawer mDrawerResult = new DrawerBuilder()
+        mDrawerResult = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(mToolbar)
                 .withActionBarDrawerToggle(true)
@@ -140,39 +139,72 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withAccountHeader(headerResult)
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName("最新帖子").withTag(0),
-                        new DividerDrawerItem(),
                         new SectionDrawerItem().withName("收藏夹"),
-                        new DividerDrawerItem(),
-                        new SectionDrawerItem().withName("苦中作乐区").withTag(13),
-                        new SecondaryDrawerItem().withName("游戏人生").withTag(22).withLevel(2),
-                        new SecondaryDrawerItem().withName("影视天地").withTag(23).withLevel(2),
-                        new SecondaryDrawerItem().withName("音乐殿堂").withTag(25).withLevel(2),
-                        new SecondaryDrawerItem().withName("灌水乐园").withTag(14).withLevel(2),
-                        new SecondaryDrawerItem().withName("贴图欣赏").withTag(24).withLevel(2),
-                        new SecondaryDrawerItem().withName("动漫天空").withTag(27).withLevel(2),
-                        new SecondaryDrawerItem().withName("体坛风云").withTag(115).withLevel(2),
-                        new SecondaryDrawerItem().withName("职场生涯").withTag(124).withLevel(2),
-                        new SectionDrawerItem().withName("技术讨论区").withTag(16),
-                        new SectionDrawerItem().withName("直通理工区").withTag(129),
-                        new SectionDrawerItem().withName("时尚生活区").withTag(166),
-                        new SectionDrawerItem().withName("系统管理区").withTag(2),
-                        new SectionDrawerItem().withName("其他功能").withTag(5)
+                        new SectionDrawerItem().withName("论坛版块"),
+                        new SecondaryDrawerItem().withName("苦中作乐区").withIdentifier(13).withSelectable(false),
+                        new SecondaryDrawerItem().withName("技术讨论区").withIdentifier(16).withSelectable(false),
+                        new SecondaryDrawerItem().withName("直通理工区").withIdentifier(129).withSelectable(false),
+                        new SecondaryDrawerItem().withName("时尚生活区").withIdentifier(166).withSelectable(false),
+                        new SecondaryDrawerItem().withName("系统管理区").withIdentifier(2).withSelectable(false)
+//                        new SecondaryDrawerItem().withName("其他功能").withTag(5)
                 )
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Log.d("tag", drawerItem.getTag().toString());
-                        mThreadsList.clear();
-                        mCurrentForumId = Integer.parseInt(String.valueOf(drawerItem.getTag()));
-                        LoginActivity.mAPI.getThreadsList(mCurrentForumId, mFrom, mTo);
-                        getSupportActionBar().setTitle(drawerItem.getTag().toString());
-                        return false;
-                    }
-                })
+                .withOnDrawerItemClickListener(
+                        new Drawer.OnDrawerItemClickListener() {
+                            @Override
+                            public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                                if (drawerItem != null) {
+                                    Log.d("identifier", drawerItem.getIdentifier() + "");
+                                    switch (drawerItem.getIdentifier()) {
+                                        case 13:
+                                            if (opened) {
+                                                mDrawerResult.removeItems(22, 23, 25, 14, 24, 27, 115, 124);
+                                            } else {
+                                                int curPos = mDrawerResult.getPosition(drawerItem);
+                                                mDrawerResult.addItemsAtPosition(curPos,
+                                                        new SecondaryDrawerItem().withName("游戏人生").withIdentifier(22).withLevel(2).withTag("游戏人生"),
+                                                        new SecondaryDrawerItem().withName("影视天地").withIdentifier(23).withLevel(2).withTag("影视天地"),
+                                                        new SecondaryDrawerItem().withName("音乐殿堂").withIdentifier(25).withLevel(2).withTag("音乐殿堂"),
+                                                        new SecondaryDrawerItem().withName("灌水乐园").withIdentifier(14).withLevel(2).withTag("灌水乐园"),
+                                                        new SecondaryDrawerItem().withName("贴图欣赏").withIdentifier(24).withLevel(2).withTag("贴图欣赏"),
+                                                        new SecondaryDrawerItem().withName("动漫天空").withIdentifier(27).withLevel(2).withTag("动漫天空"),
+                                                        new SecondaryDrawerItem().withName("体坛风云").withIdentifier(115).withLevel(2).withTag("体坛风云"),
+                                                        new SecondaryDrawerItem().withName("职场生涯").withIdentifier(124).withLevel(2).withTag("职场生涯"));
+                                            }
+                                            opened = !opened;
+                                            return true;
+                                        case 16:
+                                            return true;
+                                        case 129:
+                                            return true;
+                                        case 166:
+                                            return true;
+                                        case 2:
+                                            return true;
+                                        default:
+                                            mThreadsList.clear();
+                                            mCurrentForumId = Integer.parseInt(String.valueOf(drawerItem.getIdentifier()));
+                                            app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
+                                            if (drawerItem.getTag() != null) {
+                                                getSupportActionBar().setTitle(drawerItem.getTag().toString());
+                                            } else {
+                                                getSupportActionBar().setTitle("北理FTP联盟");
+                                            }
+                                            break;
+                                    }
+                                }
+                                return false;
+                            }
+                        }
+
+                )
                 .build();
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
-//        mAPI.getForumsList();
+        if (savedInstanceState == null) {
+            mDrawerResult.setSelection(mCurrentForumId);
+        }
+        app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
     }
 
 //    @Override
@@ -214,7 +246,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
             mThreadsList.clear();
             mFrom = 0;
             mTo = 20;
-            mAPI.getThreadsList(mCurrentForum.getFid(), mFrom, mTo);
+            app.getAPI().getThreadsList(mCurrentForum.getFid(), mFrom, mTo);
             return true;
         }
 
@@ -222,7 +254,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     }
 
     @Override
-    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.ThreadInfo> threadsList) {
+    public void handleThreadsGetterResponse(BuAPI.Result
+                                                    result, ArrayList<BuAPI.ThreadInfo> threadsList) {
         switch (result) {
             case SUCCESS:
                 break;
@@ -237,6 +270,25 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     @Override
     public void handleThreadsGetterErrorResponse(VolleyError error) {
         Toast.makeText(ThreadsActivity.this, "查询异常", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        //add the values which need to be saved from the drawer to the bundle
+        outState = mDrawerResult.saveInstanceState(outState);
+        //add the values which need to be saved from the accountHeader to the bundle
+        outState = mDrawerResult.saveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //handle the back press :D close the drawer first and if the drawer is closed close the activity
+        if (mDrawerResult != null && mDrawerResult.isDrawerOpen()) {
+            mDrawerResult.closeDrawer();
+        } else {
+            super.onBackPressed();
+        }
     }
 
 }
