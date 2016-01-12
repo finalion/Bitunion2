@@ -24,15 +24,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ThreadsActivity"
             android:label="@string/app_name" />
-
         <activity
             android:name=".ThreadPostsActivity"
             android:label="@string/title_activity_thread_posts"
             android:parentActivityName=".ThreadsActivity" />
+        <activity android:name=".PersonalInfoActivity"></activity>
     </application>
 
 </manifest>

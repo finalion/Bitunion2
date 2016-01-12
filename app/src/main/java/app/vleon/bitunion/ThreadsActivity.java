@@ -124,11 +124,12 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 )
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
-                    public boolean onProfileChanged(View view, IProfile profile, boolean currentProfile) {
+                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                        Intent intent = new Intent(ThreadsActivity.this, PersonalInfoActivity.class);
+                        startActivity(intent);
                         return false;
                     }
                 })
-
                 .build();
 
         mDrawerResult = new DrawerBuilder()

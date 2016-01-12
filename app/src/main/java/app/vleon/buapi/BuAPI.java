@@ -37,7 +37,7 @@ public class BuAPI {
     // {"result":"fail","msg":"IP+logged"}
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
-            POST_URL, PROFILE_URL, NEWPOST, NEWTHREAD;
+            POST_URL, PROFILE_URL, NEWPOST, NEWTHREAD, LATEST_URL;
     public static String URL_EMOTICON_IMAGE_PREFIX;
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
@@ -65,10 +65,11 @@ public class BuAPI {
     private OnLoginResponseListener mOnLoginResponseListener = null;
     private OnThreadsResponseListener mOnThreadsResponseListener = null;
     private OnPostsResponseListener mOnPostsResponseListener = null;
-    private OnForumsResponseListener mOnForumsResponseListener = null;
     private OnMemberInfoResponseListener mOnMemberInfoResponseListener = null;
     private Result mThreadsResult = Result.NULL;
     private Result mPostsResult = Result.NULL;
+    private Result mLatestResult = Result.NULL;
+    private OnLatestResponseListener mOnLatestResponseListener;
 
     public BuAPI(Context context) {
         mContext = context;
@@ -95,6 +96,7 @@ public class BuAPI {
         POST_URL = BASEURL + "bu_post.php";
         NEWPOST = BASEURL + "bu_newpost.php";
         NEWTHREAD = BASEURL + "bu_newpost.php";
+        LATEST_URL = BASEURL + "bu_home.php";
     }
 
     public static String getImageAbsoluteUrl(String shortUrl) {
@@ -123,14 +125,7 @@ public class BuAPI {
         } else if (net == OUTNET) {
             ROOTURL = "http://out.bitunion.org/";
         }
-        BASEURL = ROOTURL + "open_api/";
-        LOGGING_URL = BASEURL + "bu_logging.php";
-        FORUM_URL = BASEURL + "bu_forum.php";
-        THREAD_URL = BASEURL + "bu_thread.php";
-        PROFILE_URL = BASEURL + "bu_profile.php";
-        POST_URL = BASEURL + "bu_post.php";
-        NEWPOST = BASEURL + "bu_newpost.php";
-        NEWTHREAD = BASEURL + "bu_newpost.php";
+        buildUrls();
     }
 
     public Result getLoginResult() {
@@ -240,6 +235,7 @@ public class BuAPI {
                         if (response.has("memberinfo")) {
                             String tmp = response.getJSONObject("memberinfo").toString();
                             memberInfo = gson.fromJson(tmp, MemberInfo.class);
+                            memberInfo.parse();
                         } else {
 //                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
                         }
@@ -268,74 +264,6 @@ public class BuAPI {
      */
     public void getMyInfo() {
         getMemberInfo(mLoginInfo.username);
-    }
-
-    /**
-     * 查询论坛列表
-     */
-    public void getForumsList() {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "forum");
-        params.put("username", mLoginInfo.username);
-        params.put("session", mLoginInfo.session);
-        final Gson gson = new Gson();
-        JsonObjectRequest threadsRequest = new JsonObjectRequest(FORUM_URL,
-                new JSONObject(params),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("TAG", response.toString());
-                        try {
-                            String result = response.getString("result");
-                            if (result.equals("success")) {
-                                mRetryCount = 0;
-                                ArrayList<ThreadInfo> templist = null;
-                                if (response.has("forumslist")) {
-//                                    mThreadsResult = Result.SUCCESS;
-                                    String tmp = response.getJSONArray("forumslist").toString();
-                                    templist = gson.fromJson(tmp, new TypeToken<List<ThreadInfo>>() {
-                                    }.getType());
-                                } else {
-//                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
-                                }
-                                if (mOnForumsResponseListener != null)
-                                    mOnForumsResponseListener.handleForumsGetterResponse();
-                            } else {
-                                String msg = response.getString("msg");
-//                                switch (msg) {
-//                                    case "thread+number+error":
-//                                        mThreadsResult = Result.NUMBER_ERROR;
-//                                        break;
-//                                    case "IP+logged":
-//                                        // session失效时，返回该msg，需要重新获取session
-//                                        if (mRetryCount < 1) {
-//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
-//                                            login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
-//                                        } else {
-//                                            //重试一次之后仍然返回IP LOGGED，不再重试
-//                                            mThreadsResult = Result.IP_LOGGED;
-//                                            mRetryCount = 0;
-//                                        }
-//                                        mRetryCount++;
-//                                        break;
-//                                    default:
-//                                        break;
-//                                }
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        if (mOnForumsResponseListener != null)
-                            mOnForumsResponseListener.handleForumsGetterErrorResponse(error);
-                    }
-                });
-        mRequestQueue.add(threadsRequest);
     }
 
     /**
@@ -414,6 +342,77 @@ public class BuAPI {
                     }
                 });
         mRequestQueue.add(threadsRequest);
+    }
+
+    /**
+     * 查询论坛最新帖子
+     */
+    public void getLatestThreads() {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("username", mLoginInfo.username);
+        params.put("session", mLoginInfo.session);
+        JsonObjectRequest latestRequest = new JsonObjectRequest(BuAPI.LATEST_URL,
+                new JSONObject(params),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TAG", response.toString());
+                        try {
+                            String result = response.getString("result");
+                            if (result.equals("success")) {
+                                mRetryCount = 0;
+                                final Gson gson = new Gson();
+                                ArrayList<BuLatestThread> tempList = null;
+                                if (response.has("newlist")) {
+                                    mLatestResult = Result.SUCCESS;
+                                    String tmp = response.getJSONArray("newlist").toString();
+                                    tempList = gson.fromJson(tmp, new TypeToken<List<BuLatestThread>>() {
+                                    }.getType());
+                                    for (BuLatestThread latestThread : tempList) {
+                                        latestThread.parse();
+                                    }
+                                } else {
+                                    mLatestResult = Result.SUCCESS_EMPTY;   //成功，但无数据
+                                }
+                                if (mOnLatestResponseListener != null)
+                                    mOnLatestResponseListener.handleLatestThreadsGetterResponse(mLatestResult, tempList);
+                            } else {
+                                String msg = response.getString("msg");
+                                switch (msg) {
+                                    case "thread+number+error":
+                                        mLatestResult = Result.NUMBER_ERROR;
+                                        break;
+                                    case "IP+logged":
+                                        // session失效时，返回该msg，需要重新获取session
+                                        if (mRetryCount < 1) {
+                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+                                            login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
+                                        } else {
+                                            //重试一次之后仍然返回IP LOGGED，不再重试
+                                            mLatestResult = Result.IP_LOGGED;
+                                            mRetryCount = 0;
+                                        }
+                                        mRetryCount++;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("TAG", error.getMessage(), error);
+                        if (mOnLatestResponseListener != null)
+                            mOnLatestResponseListener.handleLatestThreadsGetterErrorResponse(error);
+                    }
+                });
+        mRequestQueue.add(latestRequest);
     }
 
     /**
@@ -517,10 +516,6 @@ public class BuAPI {
         mOnMemberInfoResponseListener = mrl;
     }
 
-    public void setOnForumsResponseListener(OnForumsResponseListener frl) {
-        mOnForumsResponseListener = frl;
-    }
-
     public void setOnThreadsResponseListener(OnThreadsResponseListener trl) {
         mOnThreadsResponseListener = trl;
     }
@@ -554,10 +549,10 @@ public class BuAPI {
         void handleMemberInfoGetterErrorResponse(VolleyError error);
     }
 
-    public interface OnForumsResponseListener {
-        void handleForumsGetterResponse();
+    public interface OnLatestResponseListener {
+        void handleLatestThreadsGetterResponse(Result result, ArrayList<BuLatestThread> latestThreadsList);
 
-        void handleForumsGetterErrorResponse(VolleyError error);
+        void handleLatestThreadsGetterErrorResponse(VolleyError error);
     }
 
     public interface OnThreadsResponseListener {
@@ -596,8 +591,15 @@ public class BuAPI {
         public String postnum;
         public String threadnum;
         public String email;
-        public String qq;
+        public String oicq;
+        public String msn;
 
+        public void parse() {
+            formatTime(regdate);
+            formatTime(lastvisit);
+            email = URLDecoder.decode(email);
+            signature = URLDecoder.decode(signature);
+        }
 
         //得到头像真实的URL
         public String getTrueAvatar() {
@@ -742,20 +744,6 @@ public class BuAPI {
             quoteContent = content;
         }
     }
-
-//    public class BuForum {
-//        public String type;
-//        public String fid;
-//        public String fup;
-//        public String name;
-//        public String icon;
-//        public String description;
-//        public String moderator;
-//        public String threads;
-//        public String posts;
-//        public String onlines;
-//    }
-
 
 }
 
