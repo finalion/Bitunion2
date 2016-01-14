@@ -16,7 +16,8 @@
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="帖子详情" />
 
     <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
         android:id="@+id/posts_recycler_view"

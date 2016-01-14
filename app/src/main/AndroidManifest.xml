@@ -31,7 +31,9 @@
             android:name=".ThreadPostsActivity"
             android:label="@string/title_activity_thread_posts"
             android:parentActivityName=".ThreadsActivity" />
-        <activity android:name=".PersonalInfoActivity"></activity>
+        <activity
+            android:name=".PersonalInfoActivity"
+            android:label="用户信息" />
     </application>
 
 </manifest>

@@ -213,14 +213,15 @@ public class BuAPI {
 
     /**
      * 查询用户信息
+     * @param uid 要查询用户的id
      */
-    public void getMemberInfo(String username) {
+    public void getMemberInfo(String uid) {
         HashMap<String, String> params = new HashMap<>();
         params.put("action", "profile");
         params.put("username", mLoginInfo.username);
         params.put("session", mLoginInfo.session);
-        params.put("uid", mLoginInfo.uid);
-        params.put("queryusername", username);
+        params.put("uid", uid);
+//        params.put("queryusername", username);
         final Gson gson = new Gson();
         final JsonObjectRequest memberInfoRequest = new JsonObjectRequest(PROFILE_URL,
                 new JSONObject(params), new Response.Listener<JSONObject>() {
@@ -263,7 +264,7 @@ public class BuAPI {
      * 查询当前用户信息
      */
     public void getMyInfo() {
-        getMemberInfo(mLoginInfo.username);
+        getMemberInfo(mLoginInfo.uid);
     }
 
     /**
@@ -597,8 +598,36 @@ public class BuAPI {
         public void parse() {
             formatTime(regdate);
             formatTime(lastvisit);
-            email = URLDecoder.decode(email);
-            signature = URLDecoder.decode(signature);
+            try {
+                username = URLDecoder.decode(username, "utf-8");
+                email = URLDecoder.decode(email, "utf-8");
+                signature = URLDecoder.decode(signature, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //得到头像真实的URL
+        public String getTrueAvatar2() {
+            try {
+                avatar = URLDecoder.decode(avatar, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                return "";
+            }
+            Pattern p = Pattern.compile("<img src=\"(.*?)\"  border=\"0\">", Pattern.DOTALL);
+            Matcher m = p.matcher(avatar);
+            String finder;
+            while (m.find()) {
+                finder = m.group(1);
+                if (finder.startsWith("http://")) {
+                    finder = finder.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
+                    finder = finder.replace("http://bitunion.org", "http://out.bitunion.org");
+                    return finder;
+                }
+                return BuAPI.ROOTURL + finder;
+            }
+            return "";
         }
 
         //得到头像真实的URL

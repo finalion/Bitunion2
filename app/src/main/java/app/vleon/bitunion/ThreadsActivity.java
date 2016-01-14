@@ -52,6 +52,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private ThreadsAdapter mAdapter;
 
     private boolean opened = false;
+    private boolean clearFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,18 +85,20 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
+                clearFlag = false;
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
                 app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-                Log.d("avatar", app.getMyInfo().getTrueAvatar());
-                Toast.makeText(ThreadsActivity.this, app.getMyInfo().getTrueAvatar(), Toast.LENGTH_SHORT).show();
+//                Log.d("avatar", app.getMyInfo().getTrueAvatar());
             }
         });
 
         mThreadsRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mThreadsList.clear();
+//                mThreadsRecyclerView.setRefreshing(false);
+                mLayoutManager.scrollToPosition(0);
+                clearFlag = true;
                 mFrom = 0;
                 mTo = 20;
                 app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
@@ -126,6 +129,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                     @Override
                     public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                         Intent intent = new Intent(ThreadsActivity.this, PersonalInfoActivity.class);
+                        intent.putExtra("uid", "me");
                         startActivity(intent);
                         return false;
                     }
@@ -264,6 +268,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 // session失效，重新获取
                 break;
         }
+        if (clearFlag)
+            mThreadsList.clear();
         mThreadsList.addAll(threadsList);
         mAdapter.refresh(mThreadsList);
     }

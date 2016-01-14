@@ -1,6 +1,7 @@
 package app.vleon.bitunion;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -25,10 +26,6 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, BuAPI.PostInfo data);
-    }
-
     public ThreadPostsAdapter(Context context, ArrayList<BuAPI.PostInfo> dataset) {
         mDataset = dataset;
         mContext = context;
@@ -52,7 +49,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            BuAPI.PostInfo postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            final BuAPI.PostInfo postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
             if (postInfo.subject.equals("")) {
                 holder.mSubjectTextView.setVisibility(View.GONE);
             } else {
@@ -66,6 +63,14 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                 } else {
                     holder.mAvatarImageView.setImageResource(R.drawable.noavatar);
                 }
+                holder.mAvatarImageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(mContext, PersonalInfoActivity.class);
+                        intent.putExtra("uid", postInfo.uid);
+                        mContext.startActivity(intent);
+                    }
+                });
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
                 holder.mMessageTextView.setText(Html.fromHtml(postInfo.content, new GlideImageGetter(mContext, holder.mMessageTextView), null));
@@ -124,6 +129,25 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
         this.mOnItemClickListener = listener;
     }
 
+    /**
+     * 实现view的单击事件接口
+     */
+    @Override
+    public void onClick(View view) {
+        if (mOnItemClickListener != null) {
+            mOnItemClickListener.onItemClick(view, (BuAPI.PostInfo) view.getTag());
+        }
+    }
+
+    public void refresh(ArrayList<BuAPI.PostInfo> dataset) {
+        mDataset = dataset;
+        this.notifyDataSetChanged();
+    }
+
+    public interface OnRecyclerViewItemClickListener {
+        void onItemClick(View view, BuAPI.PostInfo data);
+    }
+
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -145,20 +169,5 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             mTimeTextView = (TextView) v.findViewById(R.id.time_textview);
             mMessageTextView = (TextView) v.findViewById(R.id.message_textview);
         }
-    }
-
-    /**
-     * 实现view的单击事件接口
-     */
-    @Override
-    public void onClick(View view) {
-        if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (BuAPI.PostInfo) view.getTag());
-        }
-    }
-
-    public void refresh(ArrayList<BuAPI.PostInfo> dataset) {
-        mDataset = dataset;
-        this.notifyDataSetChanged();
     }
 }
