@@ -47,33 +47,23 @@ public class BuPostInfo {
     public void parse() {
         try {
             message = URLDecoder.decode(message, "UTF-8");
+            avatar = URLDecoder.decode(avatar, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        this.avatar = getTrueAvatar();
         this.quotes = new ArrayList<>();
         this.content = parseQuotes(removeBlankLines(message));
-        this.trueAvatar = getTrueAvatar();
     }
 
     //得到头像真实的URL
     public String getTrueAvatar() {
-        try {
-            avatar = URLDecoder.decode(avatar, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return "";
-        }
         Pattern p = Pattern.compile("<img src=\"(.*?)\"  border=\"0\">", Pattern.DOTALL);
         Matcher m = p.matcher(avatar);
         String finder;
         while (m.find()) {
             finder = m.group(1);
-            if (finder.startsWith("http://")) {
-                finder = finder.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
-                finder = finder.replace("http://bitunion.org", "http://out.bitunion.org");
-                return finder;
-            }
-            return BuAPI.ROOTURL + finder;
+            return BuAPI.getImageAbsoluteUrl(finder);
         }
         return "";
     }

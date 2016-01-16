@@ -14,13 +14,14 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuThread;
 
 public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> implements View.OnClickListener {
-    private ArrayList<BuAPI.BuThread> mDataset;
+    private ArrayList<BuThread> mDataset;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public ThreadsAdapter(ArrayList<BuAPI.BuThread> dataset) {
+    public ThreadsAdapter(ArrayList<BuThread> dataset) {
         mDataset = dataset;
     }
 
@@ -45,7 +46,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            BuAPI.BuThread thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            BuThread thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
             try {
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(thread.author, "UTF-8")));
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(thread.subject, "UTF-8")));
@@ -93,17 +94,17 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onClick(View view) {
         if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (BuAPI.BuThread) view.getTag());
+            mOnItemClickListener.onItemClick(view, (BuThread) view.getTag());
         }
     }
 
-    public void refresh(ArrayList<BuAPI.BuThread> dataset) {
+    public void refresh(ArrayList<BuThread> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
 
     public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, BuAPI.BuThread data);
+        void onItemClick(View view, BuThread data);
     }
 
     // Provide a reference to the views for each data item

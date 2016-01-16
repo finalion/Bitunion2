@@ -45,8 +45,6 @@ public class BuAPI {
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
     String mUsername, mPassword;
-    String mSession;
-    boolean isLogined;
     int mThreadsFid;
     int mThreadsFrom;
     int mThreadsTo;
@@ -96,13 +94,14 @@ public class BuAPI {
         LATEST_URL = BASEURL + "bu_home.php";
     }
 
-    public static String getImageAbsoluteUrl(String shortUrl) {
-        String path;
-        path = shortUrl;
-        path = path.replaceAll("(http://)?(www|v6|kiss|out).bitunion.org/", ROOTURL);
-        path = path.replaceAll("^images/", ROOTURL + "images/");
-        path = path.replaceAll("^attachments/", ROOTURL + "attachments/");
-        return path;
+    public static String getImageAbsoluteUrl(String rawUrl) {
+        if (rawUrl.startsWith("http://")) {
+            rawUrl = rawUrl.replace("http://www.bitunion.org", ROOTURL);  //// TODO: 2015/11/4
+            rawUrl = rawUrl.replace("http://bitunion.org", ROOTURL);
+            return rawUrl;
+        } else {
+            return ROOTURL + rawUrl;
+        }
     }
 
     public static String formatTime(String timeStr) {
@@ -625,17 +624,5 @@ public class BuAPI {
         public String msg; // TODO: 2015/11/6
     }
 
-
-    public class BuThread {
-        public String tid;
-        public String author;
-        public String authorid;
-        public String subject;
-        public String dateline;
-        public String lastpost;
-        public String lastposter;
-        public String views;
-        public String replies;
-    }
 }
 

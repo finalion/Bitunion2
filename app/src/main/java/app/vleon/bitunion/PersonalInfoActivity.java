@@ -99,8 +99,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
         setProfileView(R.id.qqView, memberInfo.oicq);
         setProfileView(R.id.emailView, memberInfo.email);
         setProfileView(R.id.signView, memberInfo.signature, 1);
-//            setAvatarView(R.id.quickContactBadge1, myinfo.getTrueAvatar());
-        Glide.with(this).load(memberInfo.getTrueAvatar())
+        Glide.with(this).load(memberInfo.avatar)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .fitCenter()
 //                .placeholder(R.drawable.noavatar)
@@ -108,26 +107,5 @@ public class PersonalInfoActivity extends AppCompatActivity {
                 .crossFade()
                 .into(mAvatarImageView);
     }
-//
-//
-//    @Override
-//    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
-//        switch (result) {
-//            case SUCCESS:
-//                if (memberInfo != null)
-//                    showInfo(memberInfo);
-//                break;
-//            case IP_LOGGED:
-////                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
-//                break;
-//            default:
-////                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void handleMemberInfoGetterErrorResponse(VolleyError error) {
-//
-//    }
+
 }

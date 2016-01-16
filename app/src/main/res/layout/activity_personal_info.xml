@@ -52,7 +52,6 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/avatar_page_imageview"
                     android:layout_centerHorizontal="true"
-                    android:text="@string/none"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -62,8 +61,9 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:padding="15dp">
+                android:padding="15dp"
+                android:paddingEnd="20dp"
+                android:paddingStart="20dp">
 
                 <TextView
                     android:id="@+id/textView1"

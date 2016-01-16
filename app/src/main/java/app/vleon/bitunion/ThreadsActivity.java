@@ -34,13 +34,14 @@ import java.util.ArrayList;
 
 import app.vleon.buapi.BuAPI;
 import app.vleon.buapi.BuMember;
+import app.vleon.buapi.BuThread;
 
 public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener {
 
     final int PROFILE_START_FLAG = 1000;
     final int LOGOUT_FLAG = 2000;
     MyApplication app;
-    ArrayList<BuAPI.BuThread> mThreadsList;
+    ArrayList<BuThread> mThreadsList;
     int mCurrentForumId;
     int mFrom = 0;
     int mTo = 20;
@@ -50,6 +51,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
+
     private ThreadsAdapter mAdapter;
     private boolean opened = false;
     private boolean clearFlag = false;
@@ -65,6 +67,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         //设置toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
+
 
         //设置主界面
         mThreadsRecyclerView = (UltimateRecyclerView) findViewById(R.id.threads_recycler_view);
@@ -106,7 +109,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         });
         mAdapter.setOnItemClickedListener(new ThreadsAdapter.OnRecyclerViewItemClickListener() {
             @Override
-            public void onItemClick(View view, BuAPI.BuThread threadInfo) {
+            public void onItemClick(View view, BuThread threadInfo) {
                 Intent intent = new Intent(ThreadsActivity.this, ThreadPostsActivity.class);
                 intent.putExtra("tid", threadInfo.tid);
                 startActivity(intent);
@@ -281,7 +284,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     }
 
     @Override
-    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.BuThread> threadsList) {
+    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuThread> threadsList) {
         if (clearFlag)
             mThreadsList.clear();
         switch (result) {
@@ -330,7 +333,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         switch (result) {
             case SUCCESS:
                 app.setMyInfo(memberInfo);
-                mMyProfile.withIcon(memberInfo.getTrueAvatar());
+                mMyProfile.withIcon(memberInfo.avatar);
                 mHeaderResult.updateProfile(mMyProfile);
                 break;
             case IP_LOGGED:
@@ -347,4 +350,6 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     public void handleMemberInfoGetterErrorResponse(VolleyError error) {
         mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
     }
+
+
 }

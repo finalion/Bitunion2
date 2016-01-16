@@ -60,7 +60,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             try {
                 if (!postInfo.avatar.equals("")) {
                     Glide.with(mContext)
-                            .load(postInfo.trueAvatar)
+                            .load(postInfo.avatar)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .fitCenter()
 //                            .placeholder(R.drawable.noavatar)
