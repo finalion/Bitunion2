@@ -3,7 +3,6 @@ package app.vleon.bitunion;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,20 +33,20 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import java.util.ArrayList;
 
 import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuForum;
+import app.vleon.buapi.BuMember;
 
-public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener {
+public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener {
 
-    final int LOGOUT_FLAG = -1;
+    final int PROFILE_START_FLAG = 1000;
+    final int LOGOUT_FLAG = 2000;
     MyApplication app;
     ArrayList<BuAPI.BuThread> mThreadsList;
-    BuForum mCurrentForum;
     int mCurrentForumId;
     int mFrom = 0;
     int mTo = 20;
     Drawer mDrawerResult = null;
-    /*Left Drawer*/
-    private ActionBarDrawerToggle mDrawerToggle;
+    IProfile mMyProfile;
+    AccountHeader mHeaderResult;
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -60,8 +59,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threads);
         app = (MyApplication) getApplicationContext();
-        mThreadsList = new ArrayList<>();
         mCurrentForumId = 14;    //默认论坛
+        mThreadsList = new ArrayList<>();
 
         //设置toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -113,29 +112,42 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 startActivity(intent);
             }
         });
-        app.getAPI().setOnThreadsResponseListener(this);
 
         //设置left drawer
         // Create the AccountHeader
-        AccountHeader headerResult = new AccountHeaderBuilder()
+        mMyProfile = new ProfileDrawerItem().withEmail(app.getAPI().getLoginInfo().username).withIcon(R.drawable.noavatar).withIdentifier(PROFILE_START_FLAG);
+        mHeaderResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
-                        new ProfileDrawerItem()
-                                .withName(app.getMyInfo().username)
-                                .withEmail(app.getMyInfo().postnum)
-                                .withIcon(app.getMyInfo().getTrueAvatar()),
+                        mMyProfile,
                         new ProfileSettingDrawerItem().withName("注销").withIcon(CommunityMaterial.Icon.cmd_logout).withIdentifier(LOGOUT_FLAG)
                 )
-                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+                .withOnAccountHeaderProfileImageListener(new AccountHeader.OnAccountHeaderProfileImageListener() {
                     @Override
-                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                    public boolean onProfileImageClick(View view, IProfile profile, boolean current) {
                         Intent intent = new Intent(ThreadsActivity.this, PersonalInfoActivity.class);
                         intent.putExtra("uid", "me");
                         startActivity(intent);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onProfileImageLongClick(View view, IProfile profile, boolean current) {
                         return false;
                     }
                 })
+                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+                    @Override
+                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                        if ((profile instanceof IDrawerItem) && ((IDrawerItem) profile).getIdentifier() == LOGOUT_FLAG) {
+                            app.getAPI().logout();
+                            startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
+                        }
+                        return false;
+                    }
+                })
+                .withSavedInstance(savedInstanceState)
                 .build();
 
         mDrawerResult = new DrawerBuilder()
@@ -143,7 +155,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withToolbar(mToolbar)
                 .withActionBarDrawerToggle(true)
                 .withActionBarDrawerToggleAnimated(true)
-                .withAccountHeader(headerResult)
+                .withAccountHeader(mHeaderResult)
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName("最新帖子").withTag(0),
                         new SectionDrawerItem().withName("收藏夹"),
@@ -207,13 +219,18 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                         }
 
                 )
+                .withSavedInstance(savedInstanceState)
+                .withShowDrawerOnFirstLaunch(true)
                 .build();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+//        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
         if (savedInstanceState == null) {
             mDrawerResult.setSelection(mCurrentForumId);
         }
+
+        app.getAPI().setOnThreadsResponseListener(this);
+        app.getAPI().setOnMemberInfoResponseListener(this);
         app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
     }
 
@@ -242,9 +259,9 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
+//        if (mDrawerToggle.onOptionsItemSelected(item)) {
+//            return true;
+//        }
 
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -256,7 +273,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
             mThreadsList.clear();
             mFrom = 0;
             mTo = 20;
-            app.getAPI().getThreadsList(mCurrentForum.getFid(), mFrom, mTo);
+            app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
             return true;
         }
 
@@ -308,4 +325,26 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         }
     }
 
+    @Override
+    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
+        switch (result) {
+            case SUCCESS:
+                app.setMyInfo(memberInfo);
+                mMyProfile.withIcon(memberInfo.getTrueAvatar());
+                mHeaderResult.updateProfile(mMyProfile);
+                break;
+            case IP_LOGGED:
+//                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+//                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
+                break;
+        }
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    }
+
+    @Override
+    public void handleMemberInfoGetterErrorResponse(VolleyError error) {
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    }
 }

@@ -22,12 +22,11 @@ import android.widget.Toast;
 import com.android.volley.VolleyError;
 
 import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuMember;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginResponseListener, BuAPI.OnMemberInfoResponseListener {
+public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginResponseListener {
 
     MyApplication app;
 
@@ -94,7 +93,7 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         mProgressView = findViewById(R.id.login_progress);
 
         app.getAPI().setOnLoginResponseListener(this);
-        app.getAPI().setOnMemberInfoResponseListener(this);
+//        app.getAPI().setOnMemberInfoResponseListener(this);
     }
 
     /**
@@ -187,11 +186,12 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
             case SUCCESS:
                 app.getAPI().getMyInfo();
                 Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
-//                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
-//                startActivity(intent);
+                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
+                startActivity(intent);
                 break;
             case IP_LOGGED:
-                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                mPasswordView.setError("用户名或密码错误");
                 break;
             default:
                 Toast.makeText(this, "未知登录错误: " + app.getAPI().getLoginInfo().msg, Toast.LENGTH_SHORT).show();
@@ -206,26 +206,5 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         showProgress(false);
     }
 
-    @Override
-    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
-        switch (result) {
-            case SUCCESS:
-                app.setMyInfo(memberInfo);
-                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
-                startActivity(intent);
-                break;
-            case IP_LOGGED:
-//                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
-                break;
-            default:
-//                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
-                break;
-        }
-    }
-
-    @Override
-    public void handleMemberInfoGetterErrorResponse(VolleyError error) {
-
-    }
 }
 

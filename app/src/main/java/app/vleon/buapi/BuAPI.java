@@ -290,7 +290,7 @@ public class BuAPI {
                             case "IP+logged":
                                 // session失效时，返回该msg，需要重新获取session
                                 if (mRetryCount < 1) {
-                                    Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                     login(mUsername, mPassword, RETRY_GETMEMBER_FLAG);
                                     mRetryCount++;
                                 } else {

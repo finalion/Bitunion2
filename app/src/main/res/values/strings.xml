@@ -8,4 +8,6 @@
     <string name="action_refresh">刷新</string>
     <string name="title_activity_personal_info">PersonalInfoActivity</string>
     <string name="none">none</string>
+    <string name="input_username">输入用户名</string>
+    <string name="input_password">输入密码</string>
 </resources>
