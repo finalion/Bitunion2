@@ -33,6 +33,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
     private UltimateRecyclerView mPostsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private ThreadPostsAdapter mAdapter;
+    private boolean clearFlag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mPostsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
+                clearFlag = false;
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
                 app.getAPI().getThreadPosts(mTid, mFrom, mTo);
@@ -80,7 +82,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mPostsRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mPostsList.clear();
+                clearFlag = true;
                 mFrom = 0;
                 mTo = 20;
                 app.getAPI().getThreadPosts(mTid, mFrom, mTo);
@@ -119,6 +121,9 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
     @Override
     public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.PostInfo> postsList) {
+        if (clearFlag) {
+            mPostsList.clear();
+        }
         switch (result) {
             case SUCCESS:
                 mPostsList.addAll(postsList);

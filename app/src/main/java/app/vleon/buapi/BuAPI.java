@@ -44,8 +44,8 @@ public class BuAPI {
     final boolean enableRefreshSession = true;
     final int maxRefreshCnt = 2; // 最多重试两次
     private final int RETRY_GETTHREADS_FLAG = 1;
-    //    public static String URL_EMOTICON_IMAGE_PREFIX;
     private final int RETRY_GETPOSTS_FLAG = 2;
+    private final int RETRY_GETINFO_FLAG = 3;
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
     String mUsername, mPassword;
@@ -162,6 +162,25 @@ public class BuAPI {
         return mLoginInfo.session;
     }
 
+    private HashMap<String, String> getPostParams(String action) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("action", action);
+        switch (action) {
+            case "login":
+//                params.put("username", username);
+//                params.put("password", password);
+                break;
+            case "logout":
+                break;
+            case "profile":
+                break;
+            case "thread":
+                break;
+            case "post":
+                break;
+        }
+        return params;
+    }
     /**
      * 论坛登录
      *
@@ -176,7 +195,6 @@ public class BuAPI {
         params.put("action", "login");
         params.put("username", username);
         params.put("password", password);
-        final Gson gson = new Gson();
         JsonObjectRequest loginRequest = new JsonObjectRequest(BuAPI.LOGGING_URL,
                 new JSONObject(params),
                 new Response.Listener<JSONObject>() {
@@ -187,11 +205,16 @@ public class BuAPI {
                         if ((mOnLoginResponseListener != null) && (retryFlag == 0)) {
                             mOnLoginResponseListener.handleLoginResponse();
                         } else {
-                            if (retryFlag == RETRY_GETTHREADS_FLAG) {
-                                getThreadsList(mThreadsFid, mThreadsFrom, mThreadsTo);
-                            }
-                            if (retryFlag == RETRY_GETPOSTS_FLAG) {
-                                getThreadPosts(mPostsTid, mPostsFrom, mPostsTo);
+                            switch (retryFlag) {
+                                case RETRY_GETTHREADS_FLAG:
+                                    getThreadsList(mThreadsFid, mThreadsFrom, mThreadsTo);
+                                    break;
+                                case RETRY_GETPOSTS_FLAG:
+                                    getThreadPosts(mPostsTid, mPostsFrom, mPostsTo);
+                                    break;
+                                case RETRY_GETINFO_FLAG:
+//                                    getMemberInfo();
+                                    break;
                             }
                         }
                     }
@@ -212,7 +235,31 @@ public class BuAPI {
     }
 
     /**
+     * 注销
+     */
+    public void logout() {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("action", "logout");
+        params.put("username", mUsername);
+        params.put("password", mPassword);
+        params.put("session", getSession());
+        final Gson gson = new Gson();
+        JsonObjectRequest logoutRequest = new JsonObjectRequest(LOGGING_URL, new JSONObject(params), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        mRequestQueue.add(logoutRequest);
+    }
+
+    /**
      * 查询用户信息
+     *
      * @param uid 要查询用户的id
      */
     public void getMemberInfo(String uid) {

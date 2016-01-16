@@ -3,10 +3,11 @@ package app.vleon.bitunion;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -25,7 +26,7 @@ import app.vleon.buapi.BuAPI;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends Activity implements BuAPI.OnLoginResponseListener, BuAPI.OnMemberInfoResponseListener {
+public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginResponseListener, BuAPI.OnMemberInfoResponseListener {
 
     MyApplication app;
 
@@ -35,11 +36,37 @@ public class LoginActivity extends Activity implements BuAPI.OnLoginResponseList
     private View mProgressView;
     private View mLoginFormView;
 
+//    @TargetApi(19)
+//    private void setTranslucentStatus(boolean on) {
+//        Window win = getWindow();
+//        WindowManager.LayoutParams winParams = win.getAttributes();
+//        final int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+//        if (on) {
+//            winParams.flags |= bits;
+//        } else {
+//            winParams.flags &= ~bits;
+//        }
+//        win.setAttributes(winParams);
+//    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         app = (MyApplication) getApplicationContext();
+        //设置toolbar
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(mToolbar);
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            setTranslucentStatus(true);
+//        }
+//        final SystemBarTintManager tintManager = new SystemBarTintManager(this);
+//        tintManager.setStatusBarTintEnabled(true);
+//        tintManager.setNavigationBarTintEnabled(true);
+//        tintManager.setStatusBarTintColor(Color.parseColor("#035B33"));
+//        setTranslucentStatus(true);
+
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);

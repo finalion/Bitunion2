@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -17,7 +15,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <ScrollView
@@ -38,13 +36,13 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp">
 
-                <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+                <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/avatar_page_imageview"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="4dp"
-                    android:src="@drawable/ptr_rotate_arrow"
+                    android:src="@drawable/noavatar"
                     app:civ_border_color="#FFFFFFFF"
                     app:civ_border_width="0dp" />
 
@@ -272,7 +270,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/msnView"
                     android:layout_margin="3dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:gravity="center_horizontal"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
             </RelativeLayout>

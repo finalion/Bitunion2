@@ -5,10 +5,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import app.vleon.buapi.BuAPI;
 import app.vleon.util.GlideImageGetter;
@@ -26,6 +28,13 @@ public class PersonalInfoActivity extends AppCompatActivity {
         //设置toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar3);
         setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 //        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mAvatarImageView = (CircleImageView) findViewById(R.id.avatar_page_imageview);
@@ -90,7 +99,13 @@ public class PersonalInfoActivity extends AppCompatActivity {
         setProfileView(R.id.emailView, memberInfo.email);
         setProfileView(R.id.signView, memberInfo.signature, 1);
 //            setAvatarView(R.id.quickContactBadge1, myinfo.getTrueAvatar());
-        Glide.with(this).load(memberInfo.getTrueAvatar()).fitCenter().into(mAvatarImageView);
+        Glide.with(this).load(memberInfo.getTrueAvatar())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .fitCenter()
+//                .placeholder(R.drawable.noavatar)
+                .error(R.drawable.noavatar)
+                .crossFade()
+                .into(mAvatarImageView);
     }
 //
 //

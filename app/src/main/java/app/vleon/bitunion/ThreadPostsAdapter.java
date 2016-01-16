@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter;
 
 import java.io.UnsupportedEncodingException;
@@ -57,7 +58,14 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             }
             try {
                 if (!postInfo.avatar.equals("")) {
-                    Glide.with(mContext).load(postInfo.trueAvatar).fitCenter().into(holder.mAvatarImageView);
+                    Glide.with(mContext)
+                            .load(postInfo.trueAvatar)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .fitCenter()
+//                            .placeholder(R.drawable.noavatar)
+//                            .error(R.drawable.noavatar)
+                            .crossFade()
+                            .into(holder.mAvatarImageView);
 //                    holder.mAvatarImageView.setImageResource(R.drawable.noavatar);
 
                 } else {

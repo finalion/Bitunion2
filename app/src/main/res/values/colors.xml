@@ -9,4 +9,7 @@
     <color name="blue_text">#284264</color>
     <color name="blue_view_selected">#FFA500</color>
     <color name="blue_text_link">#00f</color>
+    <color name="colorPrimary">#0E8B61</color>
+    <color name="colorPrimaryDark">#035B33</color>
+    <color name="colorAccent">#02A8F3</color>
 </resources>

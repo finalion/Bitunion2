@@ -18,12 +18,14 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
+import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
@@ -36,8 +38,8 @@ import app.vleon.buapi.BuForum;
 
 public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener {
 
+    final int LOGOUT_FLAG = -1;
     MyApplication app;
-
     ArrayList<BuAPI.ThreadInfo> mThreadsList;
     BuForum mCurrentForum;
     int mCurrentForumId;
@@ -50,7 +52,6 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private UltimateRecyclerView mThreadsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private ThreadsAdapter mAdapter;
-
     private boolean opened = false;
     private boolean clearFlag = false;
 
@@ -123,7 +124,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                         new ProfileDrawerItem()
                                 .withName(app.getMyInfo().username)
                                 .withEmail(app.getMyInfo().postnum)
-                                .withIcon(app.getMyInfo().getTrueAvatar())
+                                .withIcon(app.getMyInfo().getTrueAvatar()),
+                        new ProfileSettingDrawerItem().withName("注销").withIcon(CommunityMaterial.Icon.cmd_logout).withIdentifier(LOGOUT_FLAG)
                 )
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
@@ -185,6 +187,9 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                                             return true;
                                         case 2:
                                             return true;
+                                        case LOGOUT_FLAG:
+                                            app.getAPI().logout();
+                                            startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
                                         default:
                                             mThreadsList.clear();
                                             mCurrentForumId = Integer.parseInt(String.valueOf(drawerItem.getIdentifier()));
