@@ -40,7 +40,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
     final int LOGOUT_FLAG = -1;
     MyApplication app;
-    ArrayList<BuAPI.ThreadInfo> mThreadsList;
+    ArrayList<BuAPI.BuThread> mThreadsList;
     BuForum mCurrentForum;
     int mCurrentForumId;
     int mFrom = 0;
@@ -107,7 +107,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         });
         mAdapter.setOnItemClickedListener(new ThreadsAdapter.OnRecyclerViewItemClickListener() {
             @Override
-            public void onItemClick(View view, BuAPI.ThreadInfo threadInfo) {
+            public void onItemClick(View view, BuAPI.BuThread threadInfo) {
                 Intent intent = new Intent(ThreadsActivity.this, ThreadPostsActivity.class);
                 intent.putExtra("tid", threadInfo.tid);
                 startActivity(intent);
@@ -264,19 +264,24 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     }
 
     @Override
-    public void handleThreadsGetterResponse(BuAPI.Result
-                                                    result, ArrayList<BuAPI.ThreadInfo> threadsList) {
+    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.BuThread> threadsList) {
+        if (clearFlag)
+            mThreadsList.clear();
         switch (result) {
             case SUCCESS:
+                mThreadsList.addAll(threadsList);
+                mAdapter.refresh(mThreadsList);
+                if (threadsList.size() < 20) {
+                    mThreadsRecyclerView.disableLoadmore();
+                }
                 break;
             case IP_LOGGED:
                 // session失效，重新获取
                 break;
+            case SUCCESS_EMPTY:
+                mThreadsRecyclerView.disableLoadmore();
+                break;
         }
-        if (clearFlag)
-            mThreadsList.clear();
-        mThreadsList.addAll(threadsList);
-        mAdapter.refresh(mThreadsList);
     }
 
     @Override

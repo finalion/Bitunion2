@@ -19,6 +19,7 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
 import java.util.ArrayList;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuPostInfo;
 import app.vleon.ui.DividerItemDecoration;
 
 public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener {
@@ -26,7 +27,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
     public static RequestQueue mRequestQueue;
     public static BuAPI.LoginInfo mLoginInfo;
     MyApplication app;
-    ArrayList<BuAPI.PostInfo> mPostsList;
+    ArrayList<BuPostInfo> mPostsList;
     int mFrom = 0;
     int mTo = 20;
     int mTid = 0;
@@ -120,7 +121,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
 
     @Override
-    public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuAPI.PostInfo> postsList) {
+    public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuPostInfo> postsList) {
         if (clearFlag) {
             mPostsList.clear();
         }

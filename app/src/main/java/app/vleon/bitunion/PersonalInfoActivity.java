@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuMember;
 import app.vleon.util.GlideImageGetter;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -50,7 +51,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
 
         app.getAPI().setOnMemberInfoResponseListener(new BuAPI.OnMemberInfoResponseListener() {
             @Override
-            public void handleMemberInfoGetterResponse(BuAPI.Result result, BuAPI.MemberInfo memberInfo) {
+            public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
                 switch (result) {
                     case SUCCESS:
                         if (memberInfo != null)
@@ -85,7 +86,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
         setProfileView(resId, str, 0);
     }
 
-    public void showInfo(BuAPI.MemberInfo memberInfo) {
+    public void showInfo(BuMember memberInfo) {
         setProfileView(R.id.username_page_textview, memberInfo.username);
         setProfileView(R.id.uidView, memberInfo.uid);
         setProfileView(R.id.creditView, memberInfo.credit);
@@ -110,7 +111,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
 //
 //
 //    @Override
-//    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuAPI.MemberInfo memberInfo) {
+//    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
 //        switch (result) {
 //            case SUCCESS:
 //                if (memberInfo != null)

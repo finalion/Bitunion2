@@ -13,6 +13,7 @@ import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuMember;
 
 /**
  * Created by vleon on 2016/1/10.
@@ -20,7 +21,7 @@ import app.vleon.buapi.BuAPI;
 public class MyApplication extends Application {
 
     private BuAPI mAPI = null;
-    private BuAPI.MemberInfo mMyInfo = null;
+    private BuMember mMyInfo = null;
     private BuAPI.LoginInfo mLoginInfo = null;
     public void onCreate() {
         super.onCreate();
@@ -79,11 +80,11 @@ public class MyApplication extends Application {
         return mAPI;
     }
 
-    public BuAPI.MemberInfo getMyInfo() {
+    public BuMember getMyInfo() {
         return mMyInfo;
     }
 
-    public void setMyInfo(BuAPI.MemberInfo info) {
+    public void setMyInfo(BuMember info) {
         mMyInfo = info;
     }
 

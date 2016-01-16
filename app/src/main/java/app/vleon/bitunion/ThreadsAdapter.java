@@ -16,15 +16,11 @@ import java.util.ArrayList;
 import app.vleon.buapi.BuAPI;
 
 public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> implements View.OnClickListener {
-    private ArrayList<BuAPI.ThreadInfo> mDataset;
+    private ArrayList<BuAPI.BuThread> mDataset;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, BuAPI.ThreadInfo data);
-    }
-
-    public ThreadsAdapter(ArrayList<BuAPI.ThreadInfo> dataset) {
+    public ThreadsAdapter(ArrayList<BuAPI.BuThread> dataset) {
         mDataset = dataset;
     }
 
@@ -49,7 +45,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            BuAPI.ThreadInfo thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            BuAPI.BuThread thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
             try {
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(thread.author, "UTF-8")));
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(thread.subject, "UTF-8")));
@@ -91,6 +87,25 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
         this.mOnItemClickListener = listener;
     }
 
+    /**
+     * 实现view的单击事件接口
+     */
+    @Override
+    public void onClick(View view) {
+        if (mOnItemClickListener != null) {
+            mOnItemClickListener.onItemClick(view, (BuAPI.BuThread) view.getTag());
+        }
+    }
+
+    public void refresh(ArrayList<BuAPI.BuThread> dataset) {
+        mDataset = dataset;
+        this.notifyDataSetChanged();
+    }
+
+    public interface OnRecyclerViewItemClickListener {
+        void onItemClick(View view, BuAPI.BuThread data);
+    }
+
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -110,20 +125,5 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
             mViewsCountTextView = (TextView) v.findViewById(R.id.views_count_textview);
             mCommentsCountTextView = (TextView) v.findViewById(R.id.comments_count_textview);
         }
-    }
-
-    /**
-     * 实现view的单击事件接口
-     */
-    @Override
-    public void onClick(View view) {
-        if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (BuAPI.ThreadInfo) view.getTag());
-        }
-    }
-
-    public void refresh(ArrayList<BuAPI.ThreadInfo> dataset) {
-        mDataset = dataset;
-        this.notifyDataSetChanged();
     }
 }

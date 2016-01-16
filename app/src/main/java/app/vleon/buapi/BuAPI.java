@@ -15,16 +15,12 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class BuAPI {
@@ -45,7 +41,7 @@ public class BuAPI {
     final int maxRefreshCnt = 2; // 最多重试两次
     private final int RETRY_GETTHREADS_FLAG = 1;
     private final int RETRY_GETPOSTS_FLAG = 2;
-    private final int RETRY_GETINFO_FLAG = 3;
+    private final int RETRY_GETMEMBER_FLAG = 3;
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
     String mUsername, mPassword;
@@ -57,9 +53,9 @@ public class BuAPI {
     int mPostsTid;
     int mPostsFrom;
     int mPostsTo;
+    String mQueryUid;
+
     Context mContext;
-    int flagCnt = 0;
-    int mError = NONE;
     int mNetType;
     private RequestQueue mRequestQueue;
     private OnLoginResponseListener mOnLoginResponseListener = null;
@@ -68,6 +64,7 @@ public class BuAPI {
     private OnMemberInfoResponseListener mOnMemberInfoResponseListener = null;
     private Result mThreadsResult = Result.NULL;
     private Result mPostsResult = Result.NULL;
+    private Result mMemberResult = Result.NULL;
     private Result mLatestResult = Result.NULL;
     private OnLatestResponseListener mOnLatestResponseListener;
 
@@ -146,41 +143,51 @@ public class BuAPI {
         return result;
     }
 
-    public Result getThreadsResult() {
-        return mThreadsResult;
-    }
-
     public LoginInfo getLoginInfo() {
         return mLoginInfo;
-    }
-
-    public void updateSession() {
-
     }
 
     public String getSession() {
         return mLoginInfo.session;
     }
 
-    private HashMap<String, String> getPostParams(String action) {
+    public HashMap<String, String> buildPostParams(String action) {
         HashMap<String, String> params = new HashMap<>();
         params.put("action", action);
         switch (action) {
             case "login":
-//                params.put("username", username);
-//                params.put("password", password);
+                params.put("username", mUsername);
+                params.put("password", mPassword);
                 break;
             case "logout":
+                params.put("username", mUsername);
+                params.put("password", mPassword);
+                params.put("session", getSession());
                 break;
             case "profile":
+                params.put("username", mUsername);
+                params.put("session", getSession());
+                params.put("uid", mQueryUid);
+//        params.put("queryusername", username);
                 break;
             case "thread":
+                params.put("username", mUsername);
+                params.put("session", getSession());
+                params.put("fid", mThreadsFid + "");
+                params.put("from", mThreadsFrom + "");
+                params.put("to", mThreadsTo + ""); // to=100, thread+number+error
                 break;
             case "post":
+                params.put("username", mUsername);
+                params.put("session", getSession());
+                params.put("tid", mPostsTid + "");
+                params.put("from", mPostsFrom + "");
+                params.put("to", mPostsTo + ""); // to=100, thread+number+error
                 break;
         }
         return params;
     }
+
     /**
      * 论坛登录
      *
@@ -191,12 +198,8 @@ public class BuAPI {
     public void login(String username, String password, final int retryFlag) {
         mUsername = username;
         mPassword = password;
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "login");
-        params.put("username", username);
-        params.put("password", password);
         JsonObjectRequest loginRequest = new JsonObjectRequest(BuAPI.LOGGING_URL,
-                new JSONObject(params),
+                new JSONObject(buildPostParams("login")),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -212,8 +215,8 @@ public class BuAPI {
                                 case RETRY_GETPOSTS_FLAG:
                                     getThreadPosts(mPostsTid, mPostsFrom, mPostsTo);
                                     break;
-                                case RETRY_GETINFO_FLAG:
-//                                    getMemberInfo();
+                                case RETRY_GETMEMBER_FLAG:
+                                    getMemberInfo(mQueryUid);
                                     break;
                             }
                         }
@@ -238,13 +241,8 @@ public class BuAPI {
      * 注销
      */
     public void logout() {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "logout");
-        params.put("username", mUsername);
-        params.put("password", mPassword);
-        params.put("session", getSession());
         final Gson gson = new Gson();
-        JsonObjectRequest logoutRequest = new JsonObjectRequest(LOGGING_URL, new JSONObject(params), new Response.Listener<JSONObject>() {
+        JsonObjectRequest logoutRequest = new JsonObjectRequest(LOGGING_URL, new JSONObject(buildPostParams("logout")), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
             }
@@ -263,15 +261,10 @@ public class BuAPI {
      * @param uid 要查询用户的id
      */
     public void getMemberInfo(String uid) {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "profile");
-        params.put("username", mLoginInfo.username);
-        params.put("session", mLoginInfo.session);
-        params.put("uid", uid);
-//        params.put("queryusername", username);
+        mQueryUid = uid;
         final Gson gson = new Gson();
         final JsonObjectRequest memberInfoRequest = new JsonObjectRequest(PROFILE_URL,
-                new JSONObject(params), new Response.Listener<JSONObject>() {
+                new JSONObject(buildPostParams("profile")), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("TAG", response.toString());
@@ -279,19 +272,36 @@ public class BuAPI {
                     String result = response.getString("result");
                     if (result.equals("success")) {
                         mRetryCount = 0;
-                        MemberInfo memberInfo = null;
+                        mMemberResult = Result.SUCCESS;
+                        BuMember memberInfo = null;
                         if (response.has("memberinfo")) {
                             String tmp = response.getJSONObject("memberinfo").toString();
-                            memberInfo = gson.fromJson(tmp, MemberInfo.class);
+                            memberInfo = gson.fromJson(tmp, BuMember.class);
                             memberInfo.parse();
                         } else {
-//                                    mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
+                            mMemberResult = Result.SUCCESS_EMPTY; //成功，但无数据
                         }
                         if (mOnMemberInfoResponseListener != null)
-                            mOnMemberInfoResponseListener.handleMemberInfoGetterResponse(Result.SUCCESS,
+                            mOnMemberInfoResponseListener.handleMemberInfoGetterResponse(mMemberResult,
                                     memberInfo);
                     } else {
                         String msg = response.getString("msg");
+                        switch (msg) {
+                            case "IP+logged":
+                                // session失效时，返回该msg，需要重新获取session
+                                if (mRetryCount < 1) {
+                                    Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+                                    login(mUsername, mPassword, RETRY_GETMEMBER_FLAG);
+                                    mRetryCount++;
+                                } else {
+                                    //重试一次之后仍然返回IP LOGGED，不再重试
+                                    mMemberResult = Result.IP_LOGGED;
+                                    mRetryCount = 0;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -325,16 +335,9 @@ public class BuAPI {
         mThreadsFid = fid;
         mThreadsFrom = from;
         mThreadsTo = to;
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "thread");
-        params.put("username", mLoginInfo.username);
-        params.put("session", mLoginInfo.session);
-        params.put("fid", fid + "");
-        params.put("from", from + "");
-        params.put("to", to + ""); // to=100, thread+number+error
         final Gson gson = new Gson();
         JsonObjectRequest threadsRequest = new JsonObjectRequest(THREAD_URL,
-                new JSONObject(params),
+                new JSONObject(buildPostParams("thread")),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -343,11 +346,11 @@ public class BuAPI {
                             String result = response.getString("result");
                             if (result.equals("success")) {
                                 mRetryCount = 0;
-                                ArrayList<ThreadInfo> templist = null;
+                                ArrayList<BuThread> templist = null;
                                 if (response.has("threadlist")) {
                                     mThreadsResult = Result.SUCCESS;
                                     String tmp = response.getJSONArray("threadlist").toString();
-                                    templist = gson.fromJson(tmp, new TypeToken<List<ThreadInfo>>() {
+                                    templist = gson.fromJson(tmp, new TypeToken<List<BuThread>>() {
                                     }.getType());
                                 } else {
                                     mThreadsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
@@ -365,12 +368,12 @@ public class BuAPI {
                                         if (mRetryCount < 1) {
                                             Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
+                                            mRetryCount++;
                                         } else {
                                             //重试一次之后仍然返回IP LOGGED，不再重试
                                             mThreadsResult = Result.IP_LOGGED;
                                             mRetryCount = 0;
                                         }
-                                        mRetryCount++;
                                         break;
                                     default:
                                         break;
@@ -435,12 +438,12 @@ public class BuAPI {
                                         if (mRetryCount < 1) {
                                             Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
+                                            mRetryCount++;
                                         } else {
                                             //重试一次之后仍然返回IP LOGGED，不再重试
                                             mLatestResult = Result.IP_LOGGED;
                                             mRetryCount = 0;
                                         }
-                                        mRetryCount++;
                                         break;
                                     default:
                                         break;
@@ -470,7 +473,7 @@ public class BuAPI {
      * @param from   帖子起始编号，最新帖子编号为0
      * @param to     帖子结束编号 to-from <=20
      */
-    public void getThreadPosts(ThreadInfo thread, final int from, final int to) {
+    public void getThreadPosts(BuThread thread, final int from, final int to) {
         getThreadPosts(Integer.parseInt(thread.tid), from, to);
     }
 
@@ -485,16 +488,9 @@ public class BuAPI {
         mPostsTid = tid;
         mPostsFrom = from;
         mPostsTo = to;
-        HashMap<String, String> params = new HashMap<>();
-        params.put("action", "post");
-        params.put("username", mLoginInfo.username);
-        params.put("session", mLoginInfo.session);
-        params.put("tid", tid + "");
-        params.put("from", from + "");
-        params.put("to", to + ""); // to=100, thread+number+error
         final Gson gson = new Gson();
         JsonObjectRequest postsRequest = new JsonObjectRequest(BuAPI.POST_URL,
-                new JSONObject(params),
+                new JSONObject(buildPostParams("post")),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -503,13 +499,13 @@ public class BuAPI {
                             String result = response.getString("result");
                             if (result.equals("success")) {
                                 mRetryCount = 0;
-                                ArrayList<PostInfo> tempList = null;
+                                ArrayList<BuPostInfo> tempList = null;
                                 if (response.has("postlist")) {
                                     mPostsResult = Result.SUCCESS;
                                     String tmp = response.getJSONArray("postlist").toString();
-                                    tempList = gson.fromJson(tmp, new TypeToken<List<PostInfo>>() {
+                                    tempList = gson.fromJson(tmp, new TypeToken<List<BuPostInfo>>() {
                                     }.getType());
-                                    for (PostInfo post : tempList) {
+                                    for (BuPostInfo post : tempList) {
                                         post.parse();
                                     }
                                 } else {
@@ -528,12 +524,12 @@ public class BuAPI {
                                         if (mRetryCount < 1) {
                                             Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
+                                            mRetryCount++;
                                         } else {
                                             //重试一次之后仍然返回IP LOGGED，不再重试
                                             mPostsResult = Result.IP_LOGGED;
                                             mRetryCount = 0;
                                         }
-                                        mRetryCount++;
                                         break;
                                     default:
                                         break;
@@ -585,6 +581,9 @@ public class BuAPI {
         NULL   //还未返回结果
     }
 
+    /**
+     * Listener Definition below
+     */
     public interface OnLoginResponseListener {
         void handleLoginResponse();
 
@@ -592,7 +591,7 @@ public class BuAPI {
     }
 
     public interface OnMemberInfoResponseListener {
-        void handleMemberInfoGetterResponse(Result result, MemberInfo memberInfo);
+        void handleMemberInfoGetterResponse(Result result, BuMember memberInfo);
 
         void handleMemberInfoGetterErrorResponse(VolleyError error);
     }
@@ -604,13 +603,13 @@ public class BuAPI {
     }
 
     public interface OnThreadsResponseListener {
-        void handleThreadsGetterResponse(Result result, ArrayList<ThreadInfo> threadsList);
+        void handleThreadsGetterResponse(Result result, ArrayList<BuThread> threadsList);
 
         void handleThreadsGetterErrorResponse(VolleyError error);
     }
 
     public interface OnPostsResponseListener {
-        void handlePostsGetterResponse(Result result, ArrayList<PostInfo> postsList);
+        void handlePostsGetterResponse(Result result, ArrayList<BuPostInfo> postsList);
 
         void handlePostsGetterErrorResponse(VolleyError error);
     }
@@ -626,76 +625,8 @@ public class BuAPI {
         public String msg; // TODO: 2015/11/6
     }
 
-    public class MemberInfo {
-        public String uid;
-        public String status;
-        public String username;
-        public String avatar;
-        public String credit;
-        public String regdate;
-        public String lastvisit;
-        public String bday;
-        public String signature;
-        public String postnum;
-        public String threadnum;
-        public String email;
-        public String oicq;
-        public String msn;
 
-        public void parse() {
-            formatTime(regdate);
-            formatTime(lastvisit);
-            try {
-                username = URLDecoder.decode(username, "utf-8");
-                email = URLDecoder.decode(email, "utf-8");
-                signature = URLDecoder.decode(signature, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //得到头像真实的URL
-        public String getTrueAvatar2() {
-            try {
-                avatar = URLDecoder.decode(avatar, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                return "";
-            }
-            Pattern p = Pattern.compile("<img src=\"(.*?)\"  border=\"0\">", Pattern.DOTALL);
-            Matcher m = p.matcher(avatar);
-            String finder;
-            while (m.find()) {
-                finder = m.group(1);
-                if (finder.startsWith("http://")) {
-                    finder = finder.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
-                    finder = finder.replace("http://bitunion.org", "http://out.bitunion.org");
-                    return finder;
-                }
-                return BuAPI.ROOTURL + finder;
-            }
-            return "";
-        }
-
-        //得到头像真实的URL
-        public String getTrueAvatar() {
-            try {
-                avatar = URLDecoder.decode(avatar, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                return "";
-            }
-            if (avatar.startsWith("http://")) {
-                avatar = avatar.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
-                avatar = avatar.replace("http://bitunion.org", "http://out.bitunion.org");
-                return avatar;
-            } else {
-                return BuAPI.ROOTURL + avatar;
-            }
-        }
-    }
-
-    public class ThreadInfo {
+    public class BuThread {
         public String tid;
         public String author;
         public String authorid;
@@ -706,120 +637,5 @@ public class BuAPI {
         public String views;
         public String replies;
     }
-
-    public class PostInfo {
-        public String pid;
-        public String fid;
-        public String tid;
-        public String aid;
-        public String author;
-        public String authorid;
-        public String subject;
-        public String dateline;
-        public String message;
-        public String usesig;
-        public String bbcodeoff;
-        public String smileyoff;
-        public String parseurloff;
-        public String score;
-        public String rate;
-        public String ratetimes;
-        public String lastedit;
-        public String uid;
-        public String username;
-        public String avatar;
-        public String content;
-        public String trueAvatar;
-        public ArrayList<Quote> quotes;
-        String pstatus;
-        String aaid;
-        String creditsrequire;
-        String filetype;
-        String filename;
-        String attachment;
-        String filesize;
-        String downloads;
-        String epid;
-        String maskpost;
-
-        public void parse() {
-            try {
-                message = URLDecoder.decode(message, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            this.quotes = new ArrayList<>();
-            this.content = parseQuotes(removeBlankLines(message));
-            this.trueAvatar = getTrueAvatar();
-        }
-
-        //得到头像真实的URL
-        public String getTrueAvatar() {
-            try {
-                avatar = URLDecoder.decode(avatar, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                return "";
-            }
-            Pattern p = Pattern.compile("<img src=\"(.*?)\"  border=\"0\">", Pattern.DOTALL);
-            Matcher m = p.matcher(avatar);
-            String finder;
-            while (m.find()) {
-                finder = m.group(1);
-                if (finder.startsWith("http://")) {
-                    finder = finder.replace("http://www.bitunion.org", "http://out.bitunion.org");  //// TODO: 2015/11/4
-                    finder = finder.replace("http://bitunion.org", "http://out.bitunion.org");
-                    return finder;
-                }
-                return BuAPI.ROOTURL + finder;
-            }
-            return "";
-        }
-
-        // 去除段前段后的换行符
-        private String removeBlankLines(String content) {
-            content = content.trim();
-            while (content.startsWith("<br>")) {
-                content = content.substring(4).trim();
-            }
-            while (content.startsWith("<br />")) {
-                content = content.substring(6).trim();
-            }
-            while (content.endsWith("<br />")) {
-                content = content.substring(0, content.length() - 6).trim();
-            }
-            return content;
-        }
-
-        // 解析帖子的引用部分
-        public String parseQuotes(String message) {
-            quotes.clear();
-            Pattern p = Pattern
-                    .compile(
-                            "<center><table border=\"0\" width=\"90%\".*?bgcolor=\"ALTBG2\"><b>(.*?)</b> (\\d{4}-\\d{1,2}-\\d{1,2} \\d{1,2}:\\d{1,2})<br />(.*?)</td></tr></table></td></tr></table></center><br>",
-                            Pattern.DOTALL);
-            Matcher m = p.matcher(message);
-            while (m.find()) {
-                // 1: author; 2:time; 3:content
-                quotes.add(new Quote(m.group(1), m.group(2), removeBlankLines(m.group(3))));
-                message = message.replace(m.group(0), "");
-            }
-            return message;
-        }
-
-    }
-
-    public class Quote {
-        public String quoteAuthor;
-        public String quoteTime;
-        public String quoteContent;
-
-        public Quote(String author, String time, String content) {
-            quoteAuthor = author;
-            quoteTime = time;
-            quoteContent = content;
-        }
-    }
-
 }
 

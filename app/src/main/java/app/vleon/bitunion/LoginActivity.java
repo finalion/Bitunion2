@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.android.volley.VolleyError;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuMember;
 
 /**
  * A login screen that offers login via email/password.
@@ -206,7 +207,7 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
     }
 
     @Override
-    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuAPI.MemberInfo memberInfo) {
+    public void handleMemberInfoGetterResponse(BuAPI.Result result, BuMember memberInfo) {
         switch (result) {
             case SUCCESS:
                 app.setMyInfo(memberInfo);
