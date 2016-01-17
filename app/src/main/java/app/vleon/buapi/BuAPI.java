@@ -551,6 +551,7 @@ public class BuAPI {
         mRequestQueue.add(postsRequest);
     }
 
+
     public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
         mOnLoginResponseListener = lrl;
     }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
@@ -80,6 +81,10 @@ public class PersonalInfoActivity extends AppCompatActivity {
         } else {
             view.setText(Html.fromHtml(str, new GlideImageGetter(this, view), null));
         }
+        if (resId == R.id.signView) {
+            view.setLinksClickable(true);
+            view.setMovementMethod(LinkMovementMethod.getInstance());
+        }
     }
 
     void setProfileView(int resId, String str) {
@@ -99,6 +104,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
         setProfileView(R.id.qqView, memberInfo.oicq);
         setProfileView(R.id.emailView, memberInfo.email);
         setProfileView(R.id.signView, memberInfo.signature, 1);
+
         Glide.with(this).load(memberInfo.avatar)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .fitCenter()

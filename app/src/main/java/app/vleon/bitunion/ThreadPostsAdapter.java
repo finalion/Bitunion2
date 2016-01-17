@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import app.vleon.buapi.BuAPI;
 import app.vleon.buapi.BuPostInfo;
 import app.vleon.util.GlideImageGetter;
+import app.vleon.util.HtmlTagHandler;
+import app.vleon.util.Utils;
 
 public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.ViewHolder> implements View.OnClickListener {
     private ArrayList<BuPostInfo> mDataset;
@@ -81,9 +84,21 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     }
                 });
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
-                holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
-                holder.mMessageTextView.setText(Html.fromHtml(postInfo.content, new GlideImageGetter(mContext, holder.mMessageTextView), null));
 
+                holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
+                holder.mMessageTextView.setLinksClickable(true);
+                holder.mMessageTextView.setMovementMethod(LinkMovementMethod.getInstance());
+                holder.mMessageTextView.setText(Utils.getClickableHtml(postInfo.content, null,
+//                        new Utils.OnClickedClickableSpanListener() {
+//                            @Override
+//                            public void onClick(View view, URLSpan urlSpan) {
+//                                Toast.makeText(mContext, urlSpan.getURL(), Toast.LENGTH_SHORT).show();
+//                            }
+//                        },
+                        new GlideImageGetter(mContext, holder.mMessageTextView), new HtmlTagHandler(mContext)));
+
+                holder.mQuotesTextView.setLinksClickable(true);
+                holder.mQuotesTextView.setMovementMethod(LinkMovementMethod.getInstance());
                 if (postInfo.quotes.size() > 0) {
                     holder.mQuotesTextView.setVisibility(View.VISIBLE);
                     // 显示引用信息部分
@@ -103,7 +118,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
 
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-                holder.mSubjectTextView.setText("encode error");
+                holder.mSubjectTextView.setText(R.string.encode_error);
             }
             holder.mTimeTextView.setText(BuAPI.formatTime(postInfo.lastedit));
             holder.itemView.setTag(postInfo); //将当前帖子设置为itemview的tag，方便点击事件回调
