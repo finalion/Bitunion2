@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder;
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter;
 
 import java.io.UnsupportedEncodingException;
@@ -16,13 +17,20 @@ import java.util.ArrayList;
 import app.vleon.buapi.BuAPI;
 import app.vleon.buapi.BuThread;
 
-public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> implements View.OnClickListener {
+public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> {
     private ArrayList<BuThread> mDataset;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
     public ThreadsAdapter(ArrayList<BuThread> dataset) {
         mDataset = dataset;
+    }
+
+    /**
+     * 单击事件监听
+     */
+    public void setOnItemClickedListener(OnRecyclerViewItemClickListener listener) {
+        this.mOnItemClickListener = listener;
     }
 
     // Create new views (invoked by the layout manager)
@@ -33,14 +41,21 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
 
         // set the view's size, margins, paddings and layout parameters
 
-        ViewHolder vh = new ViewHolder(v);
-        v.setOnClickListener(this);
+        ViewHolder vh = new ViewHolder(v, true);
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(v, (BuThread) v.getTag());
+                }
+            }
+        });
         return vh;
     }
 
     @Override
     public ViewHolder getViewHolder(View view) {
-        return new ViewHolder(view);
+        return new ViewHolder(view, false);
     }
 
     @Override
@@ -81,23 +96,6 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
         return 0;
     }
 
-    /**
-     * 单击事件监听
-     */
-    public void setOnItemClickedListener(OnRecyclerViewItemClickListener listener) {
-        this.mOnItemClickListener = listener;
-    }
-
-    /**
-     * 实现view的单击事件接口
-     */
-    @Override
-    public void onClick(View view) {
-        if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (BuThread) view.getTag());
-        }
-    }
-
     public void refresh(ArrayList<BuThread> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
@@ -110,7 +108,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends UltimateRecyclerviewViewHolder {
         // each data item is just a string in this case
         public TextView mAuthorTextView;
         public TextView mSubjectTextView;
@@ -118,13 +116,15 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
         public TextView mViewsCountTextView;
         public TextView mCommentsCountTextView;
 
-        public ViewHolder(View v) {
+        public ViewHolder(View v, boolean isItem) {
             super(v);
-            mAuthorTextView = (TextView) v.findViewById(R.id.author_textview);
-            mSubjectTextView = (TextView) v.findViewById(R.id.subject_textview);
-            mTimeTextView = (TextView) v.findViewById(R.id.time_textview);
-            mViewsCountTextView = (TextView) v.findViewById(R.id.views_count_textview);
-            mCommentsCountTextView = (TextView) v.findViewById(R.id.comments_count_textview);
+            if (isItem) {
+                mAuthorTextView = (TextView) v.findViewById(R.id.author_textview);
+                mSubjectTextView = (TextView) v.findViewById(R.id.subject_textview);
+                mTimeTextView = (TextView) v.findViewById(R.id.time_textview);
+                mViewsCountTextView = (TextView) v.findViewById(R.id.views_count_textview);
+                mCommentsCountTextView = (TextView) v.findViewById(R.id.comments_count_textview);
+            }
         }
     }
 }

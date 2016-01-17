@@ -6,7 +6,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,7 +15,10 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
+import com.marshalchen.ultimaterecyclerview.ObservableScrollState;
+import com.marshalchen.ultimaterecyclerview.ObservableScrollViewCallbacks;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
+import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -48,10 +50,10 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     Drawer mDrawerResult = null;
     IProfile mMyProfile;
     AccountHeader mHeaderResult;
+    Toolbar mToolbar;
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
-    private RecyclerView.LayoutManager mLayoutManager;
-
+    private LinearLayoutManager mLayoutManager;
     private ThreadsAdapter mAdapter;
     private boolean opened = false;
     private boolean clearFlag = false;
@@ -65,8 +67,9 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         mThreadsList = new ArrayList<>();
 
         //设置toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.activity_thread_toolbar);
         setSupportActionBar(mToolbar);
+//        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 
         //设置主界面
@@ -77,14 +80,14 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
         mThreadsRecyclerView.setLayoutManager(mLayoutManager);
-        mThreadsRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mThreadsRecyclerView.enableLoadmore();
         // specify an adapter (see also next example)
         mAdapter = new ThreadsAdapter(mThreadsList);
-        mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         mThreadsRecyclerView.setAdapter(mAdapter);
 
+        mThreadsRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        mThreadsRecyclerView.enableLoadmore();
+        mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
@@ -92,7 +95,6 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 mFrom = mTo + 1;
                 mTo = mFrom + 20;
                 app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-//                Log.d("avatar", app.getMyInfo().getTrueAvatar());
             }
         });
 
@@ -115,6 +117,39 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 startActivity(intent);
             }
         });
+
+        //floating action button
+        final JellyBeanFloatingActionButton floatingButton = (JellyBeanFloatingActionButton) findViewById(R.id.custom_urv_add_floating_button);
+        floatingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(ThreadsActivity.this, "floating button clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+        mThreadsRecyclerView.setScrollViewCallbacks(new ObservableScrollViewCallbacks() {
+            @Override
+            public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
+
+            }
+
+            @Override
+            public void onDownMotionEvent() {
+
+            }
+
+            @Override
+            public void onUpOrCancelMotionEvent(ObservableScrollState observableScrollState) {
+                int screenHeight = findViewById(android.R.id.content).getHeight();
+                if (observableScrollState == ObservableScrollState.DOWN) {
+                    mThreadsRecyclerView.showToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
+//                    mThreadsRecyclerView.showView(floatingButton, mThreadsRecyclerView, screenHeight);
+                } else if (observableScrollState == ObservableScrollState.UP) {
+                    mThreadsRecyclerView.hideToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
+//                    mThreadsRecyclerView.hideView(floatingButton, mThreadsRecyclerView, screenHeight);
+                }
+            }
+        });
+//        mThreadsRecyclerView.showFloatingActionButton();
 
         //设置left drawer
         // Create the AccountHeader
@@ -311,10 +346,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the drawer to the bundle
-        outState = mDrawerResult.saveInstanceState(outState);
         //add the values which need to be saved from the accountHeader to the bundle
-        outState = mDrawerResult.saveInstanceState(outState);
+//        outState = mDrawerResult.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 

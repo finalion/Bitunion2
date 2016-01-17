@@ -8,9 +8,9 @@
     <style name="BaseAppTheme" parent="CustomTheme">
 
     </style>
-    <style name="AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <!--<style name="AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />-->
 
-    <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <!--<style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />-->
 
     <style name="CustomTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
