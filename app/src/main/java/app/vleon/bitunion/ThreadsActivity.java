@@ -8,6 +8,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,10 +34,13 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import app.vleon.buapi.BuAPI;
 import app.vleon.buapi.BuMember;
 import app.vleon.buapi.BuThread;
+import app.vleon.util.Utils;
 
 public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener {
 
@@ -51,6 +55,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     IProfile mMyProfile;
     AccountHeader mHeaderResult;
     Toolbar mToolbar;
+    Map<String, List<Map<String, String>>> mForumsList = null;
+    SparseBooleanArray openStatus2 = null;
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
     private LinearLayoutManager mLayoutManager;
@@ -58,12 +64,52 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private boolean opened = false;
     private boolean clearFlag = false;
 
+    private void removeDrawerForumItems(int identifier) {
+        if (mForumsList != null) {
+            List<Map<String, String>> items = mForumsList.get(identifier + "");
+            for (int i = 0; i < items.size(); i++) {
+                Map<String, String> item = items.get(i);
+                mDrawerResult.removeItem(Integer.parseInt(item.get("fid")));
+            }
+        }
+    }
+
+    private void addDrawerForumItems(int curPos, int identifier) {
+        if (mForumsList != null) {
+            List<Map<String, String>> items = mForumsList.get(identifier + "");
+            for (int i = 0; i < items.size(); i++) {
+                Map<String, String> item = items.get(i);
+                mDrawerResult.addItemsAtPosition(curPos,
+                        new SecondaryDrawerItem()
+                                .withName(item.get("name"))
+                                .withIdentifier(Integer.parseInt(item.get("fid")))
+                                .withLevel(2)
+                                .withTag(item.get("name")));
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threads);
         app = (MyApplication) getApplicationContext();
         mCurrentForumId = 14;    //默认论坛
+        try {
+            mForumsList = Utils.readJsonFromFile(getAssets().open("forums.json"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        openStatus2 = new SparseBooleanArray() {
+            {
+                put(13, false);
+                put(16, false);
+                put(129, false);
+                put(166, false);
+                put(2, false);
+            }
+        };
+
         mThreadsList = new ArrayList<>();
 
         //设置toolbar
@@ -210,39 +256,55 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                             @Override
                             public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                                 if (drawerItem != null) {
-                                    Log.d("identifier", drawerItem.getIdentifier() + "");
-                                    switch (drawerItem.getIdentifier()) {
+                                    int identifier = drawerItem.getIdentifier();
+                                    Log.d("identifier", identifier + "");
+                                    switch (identifier) {
                                         case 13:
+//                                            openStatus2.put(16,false);
+//                                            openStatus2.put(129,false);
+//                                            openStatus2.put(166,false);
+//                                            openStatus2.put(2,false);
+                                        case 16:
+//                                            openStatus2.put(13,false);
+//                                            openStatus2.put(129,false);
+//                                            openStatus2.put(166,false);
+//                                            openStatus2.put(2,false);
+                                        case 129:
+//                                            openStatus2.put(13,false);
+//                                            openStatus2.put(16,false);
+//                                            openStatus2.put(166,false);
+//                                            openStatus2.put(2,false);
+                                        case 166:
+//                                            openStatus2.put(13,false);
+//                                            openStatus2.put(16,false);
+//                                            openStatus2.put(129,false);
+//                                            openStatus2.put(2,false);
+                                        case 2:
+//                                            openStatus2.put(13,false);
+//                                            openStatus2.put(16,false);
+//                                            openStatus2.put(129,false);
+//                                            openStatus2.put(166,false);
+//                                            removeDrawerForumItems(13);
+//                                            removeDrawerForumItems(16);
+//                                            removeDrawerForumItems(129);
+//                                            removeDrawerForumItems(166);
+//                                            removeDrawerForumItems(2);
+                                            boolean opened = openStatus2.get(identifier);
                                             if (opened) {
-                                                mDrawerResult.removeItems(22, 23, 25, 14, 24, 27, 115, 124);
+                                                removeDrawerForumItems(identifier);
                                             } else {
                                                 int curPos = mDrawerResult.getPosition(drawerItem);
-                                                mDrawerResult.addItemsAtPosition(curPos,
-                                                        new SecondaryDrawerItem().withName("游戏人生").withIdentifier(22).withLevel(2).withTag("游戏人生"),
-                                                        new SecondaryDrawerItem().withName("影视天地").withIdentifier(23).withLevel(2).withTag("影视天地"),
-                                                        new SecondaryDrawerItem().withName("音乐殿堂").withIdentifier(25).withLevel(2).withTag("音乐殿堂"),
-                                                        new SecondaryDrawerItem().withName("灌水乐园").withIdentifier(14).withLevel(2).withTag("灌水乐园"),
-                                                        new SecondaryDrawerItem().withName("贴图欣赏").withIdentifier(24).withLevel(2).withTag("贴图欣赏"),
-                                                        new SecondaryDrawerItem().withName("动漫天空").withIdentifier(27).withLevel(2).withTag("动漫天空"),
-                                                        new SecondaryDrawerItem().withName("体坛风云").withIdentifier(115).withLevel(2).withTag("体坛风云"),
-                                                        new SecondaryDrawerItem().withName("职场生涯").withIdentifier(124).withLevel(2).withTag("职场生涯"));
+                                                addDrawerForumItems(curPos, identifier);
                                             }
-                                            opened = !opened;
-                                            return true;
-                                        case 16:
-                                            return true;
-                                        case 129:
-                                            return true;
-                                        case 166:
-                                            return true;
-                                        case 2:
+                                            openStatus2.put(identifier, !opened);
                                             return true;
                                         case LOGOUT_FLAG:
                                             app.getAPI().logout();
                                             startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
+                                            break;
                                         default:
                                             mThreadsList.clear();
-                                            mCurrentForumId = Integer.parseInt(String.valueOf(drawerItem.getIdentifier()));
+                                            mCurrentForumId = identifier;
                                             app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
                                             if (drawerItem.getTag() != null) {
                                                 getSupportActionBar().setTitle(drawerItem.getTag().toString());
