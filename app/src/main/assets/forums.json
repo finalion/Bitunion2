@@ -1,0 +1,210 @@
+{
+  "13": [
+    {
+      "type": "forum",
+      "fid": "22",
+      "name": "游戏人生",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "23",
+      "name": "影视天地",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "25",
+      "name": "音乐殿堂",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "14",
+      "name": "灌水乐园",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "24",
+      "name": "贴图欣赏",
+      "fup": "2",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "27",
+      "name": "动漫天空",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "115",
+      "name": "体坛风云",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    },
+    {
+      "type": "forum",
+      "fid": "124",
+      "name": "职场生涯",
+      "fup": "13",
+      "icon": "images%2Fforumicon%2Fannounce.gif",
+      "description": "%E5%8F%91%E5%B8%83%E8%81%94%E7%9B%9F%E7%9A%84%E6%9C%80%E6%96%B0%E5%85%AC%E5%91%8A",
+      "moderator": "soff"
+    }
+  ],
+  "16": [
+    {
+      "type": "forum",
+      "fid": "10",
+      "name": "网络技术与信息 ",
+      "fup": "16"
+    },
+    {
+      "type": "forum",
+      "fid": "84",
+      "name": "GNU/Linux 交流区",
+      "fup": "16"
+    },
+    {
+      "type": "forum",
+      "fid": "101",
+      "name": "嵌入式开发技术",
+      "fup": "16"
+    },
+    {
+      "type": "forum",
+      "fid": "32",
+      "name": "程序员集中营",
+      "fup": "16"
+    },
+    {
+      "type": "forum",
+      "fid": "21",
+      "name": "软件使用与交流",
+      "fup": "16"
+    }
+  ],
+  "129": [
+    {
+      "type": "forum",
+      "fid": "108",
+      "name": "校园求助热线",
+      "fup": "129"
+    },
+    {
+      "type": "forum",
+      "fid": "59",
+      "name": "叫卖场",
+      "fup": "129"
+    },
+    {
+      "type": "forum",
+      "fid": "83",
+      "name": "前程似锦",
+      "fup": "129"
+    },
+    {
+      "type": "forum",
+      "fid": "151",
+      "name": "知识海报",
+      "fup": "129"
+    },
+    {
+      "type": "forum",
+      "fid": "150",
+      "name": "海外BITer",
+      "fup": "129"
+    },
+    {
+      "type": "forum",
+      "fid": "89",
+      "name": "外语园地",
+      "fup": "129"
+    }
+  ],
+  "166": [
+    {
+      "type": "forum",
+      "fid": "167",
+      "name": "购前咨询 ",
+      "fup": "166"
+    },
+    {
+      "type": "forum",
+      "fid": "80",
+      "name": "硬件与数码时尚",
+      "fup": "166"
+    },
+    {
+      "type": "forum",
+      "fid": "168",
+      "name": "驴游四海 ",
+      "fup": "166"
+    },
+    {
+      "type": "forum",
+      "fid": "116",
+      "name": "摄影与艺术 ",
+      "fup": "166"
+    },
+    {
+      "type": "forum",
+      "fid": "140",
+      "name": "车行天下",
+      "fup": "166"
+    },
+    {
+      "type": "forum",
+      "fid": "96",
+      "name": "生活会馆",
+      "fup": "166"
+    }
+  ],
+  "2": [
+    {
+      "type": "forum",
+      "fid": "3",
+      "name": "联盟公告版 ",
+      "fup": "2"
+    },
+    {
+      "type": "forum",
+      "fid": "4",
+      "name": "联盟意见箱",
+      "fup": "2"
+    },
+    {
+      "type": "forum",
+      "fid": "170",
+      "name": "后台管理区",
+      "fup": "2"
+    },
+    {
+      "type": "forum",
+      "fid": "92",
+      "name": "新手交流区",
+      "fup": "2"
+    }
+  ]
+}
