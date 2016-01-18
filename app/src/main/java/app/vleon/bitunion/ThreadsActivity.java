@@ -61,7 +61,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private UltimateRecyclerView mThreadsRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private ThreadsAdapter mAdapter;
-    private boolean opened = false;
+    private boolean lastOpened = false;
     private boolean clearFlag = false;
 
     private void removeDrawerForumItems(int identifier) {
@@ -260,36 +260,22 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                                     Log.d("identifier", identifier + "");
                                     switch (identifier) {
                                         case 13:
-//                                            openStatus2.put(16,false);
-//                                            openStatus2.put(129,false);
-//                                            openStatus2.put(166,false);
-//                                            openStatus2.put(2,false);
                                         case 16:
-//                                            openStatus2.put(13,false);
-//                                            openStatus2.put(129,false);
-//                                            openStatus2.put(166,false);
-//                                            openStatus2.put(2,false);
                                         case 129:
-//                                            openStatus2.put(13,false);
-//                                            openStatus2.put(16,false);
-//                                            openStatus2.put(166,false);
-//                                            openStatus2.put(2,false);
                                         case 166:
-//                                            openStatus2.put(13,false);
-//                                            openStatus2.put(16,false);
-//                                            openStatus2.put(129,false);
-//                                            openStatus2.put(2,false);
                                         case 2:
-//                                            openStatus2.put(13,false);
-//                                            openStatus2.put(16,false);
-//                                            openStatus2.put(129,false);
-//                                            openStatus2.put(166,false);
-//                                            removeDrawerForumItems(13);
-//                                            removeDrawerForumItems(16);
-//                                            removeDrawerForumItems(129);
-//                                            removeDrawerForumItems(166);
-//                                            removeDrawerForumItems(2);
+                                            removeDrawerForumItems(13);
+                                            removeDrawerForumItems(16);
+                                            removeDrawerForumItems(129);
+                                            removeDrawerForumItems(166);
+                                            removeDrawerForumItems(2);
                                             boolean opened = openStatus2.get(identifier);
+                                            //全部项置于关闭状态
+                                            openStatus2.put(13, false);
+                                            openStatus2.put(16, false);
+                                            openStatus2.put(129, false);
+                                            openStatus2.put(166, false);
+                                            openStatus2.put(2, false);
                                             if (opened) {
                                                 removeDrawerForumItems(identifier);
                                             } else {
