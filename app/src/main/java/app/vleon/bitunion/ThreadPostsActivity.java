@@ -138,6 +138,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
             case SUCCESS:
                 mPostsList.addAll(postsList);
                 mAdapter.refresh(mPostsList);
+                //  TODO: 2016/1/18 恰好20个posts怎么处理？
                 if (postsList.size() < 20) {
                     mPostsRecyclerView.disableLoadmore();
                 }

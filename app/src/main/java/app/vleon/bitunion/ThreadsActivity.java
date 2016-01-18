@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -61,7 +60,6 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     private UltimateRecyclerView mThreadsRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private ThreadsAdapter mAdapter;
-    private boolean lastOpened = false;
     private boolean clearFlag = false;
 
     private void removeDrawerForumItems(int identifier) {
@@ -185,17 +183,16 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
             @Override
             public void onUpOrCancelMotionEvent(ObservableScrollState observableScrollState) {
-                int screenHeight = findViewById(android.R.id.content).getHeight();
-                if (observableScrollState == ObservableScrollState.DOWN) {
-                    mThreadsRecyclerView.showToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
+//                int screenHeight = findViewById(android.R.id.content).getHeight();
+//                if (observableScrollState == ObservableScrollState.DOWN) {
+//                    mThreadsRecyclerView.showToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
 //                    mThreadsRecyclerView.showView(floatingButton, mThreadsRecyclerView, screenHeight);
-                } else if (observableScrollState == ObservableScrollState.UP) {
-                    mThreadsRecyclerView.hideToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
+//                } else if (observableScrollState == ObservableScrollState.UP) {
+//                    mThreadsRecyclerView.hideToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
 //                    mThreadsRecyclerView.hideView(floatingButton, mThreadsRecyclerView, screenHeight);
-                }
+//                }
             }
         });
-//        mThreadsRecyclerView.showFloatingActionButton();
 
         //设置left drawer
         // Create the AccountHeader
@@ -257,7 +254,6 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                             public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                                 if (drawerItem != null) {
                                     int identifier = drawerItem.getIdentifier();
-                                    Log.d("identifier", identifier + "");
                                     switch (identifier) {
                                         case 13:
                                         case 16:
@@ -289,8 +285,11 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                                             startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
                                             break;
                                         default:
-                                            mThreadsList.clear();
                                             mCurrentForumId = identifier;
+                                            mLayoutManager.scrollToPosition(0);
+                                            clearFlag = true;
+                                            mFrom = 0;
+                                            mTo = 20;
                                             app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
                                             if (drawerItem.getTag() != null) {
                                                 getSupportActionBar().setTitle(drawerItem.getTag().toString());

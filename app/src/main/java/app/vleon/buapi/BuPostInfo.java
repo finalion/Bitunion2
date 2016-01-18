@@ -48,12 +48,18 @@ public class BuPostInfo {
         try {
             message = URLDecoder.decode(message, "UTF-8");
             avatar = URLDecoder.decode(avatar, "UTF-8");
+            if (attachment != null) {
+                attachment = BuAPI.getAvailableUrl(URLDecoder.decode(attachment, "UTF-8"));
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         this.avatar = getTrueAvatar();
         this.quotes = new ArrayList<>();
         this.content = parseQuotes(removeBlankLines(message));
+        if (attachment != null) {
+            this.content += String.format("<br /><br /><i>附件</i><br /><img src=\"%s\">", attachment);
+        }
     }
 
     //得到头像真实的URL
@@ -63,7 +69,7 @@ public class BuPostInfo {
         String finder;
         while (m.find()) {
             finder = m.group(1);
-            return BuAPI.getImageAbsoluteUrl(finder);
+            return BuAPI.getAvailableUrl(finder);
         }
         return "";
     }

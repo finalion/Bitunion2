@@ -2,7 +2,6 @@ package app.vleon.buapi;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -94,7 +93,7 @@ public class BuAPI {
         LATEST_URL = BASEURL + "bu_home.php";
     }
 
-    public static String getImageAbsoluteUrl(String rawUrl) {
+    public static String getAvailableUrl(String rawUrl) {
         if (rawUrl.startsWith("http://")) {
             rawUrl = rawUrl.replace("http://www.bitunion.org", ROOTURL);  //// TODO: 2015/11/4
             rawUrl = rawUrl.replace("http://bitunion.org", ROOTURL);
@@ -230,6 +229,8 @@ public class BuAPI {
                     }
                 });
         mRequestQueue.add(loginRequest);
+
+
     }
 
     public void login(String username, String password) {
@@ -365,7 +366,7 @@ public class BuAPI {
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
                                         if (mRetryCount < 1) {
-                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
                                             mRetryCount++;
                                         } else {
@@ -435,7 +436,7 @@ public class BuAPI {
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
                                         if (mRetryCount < 1) {
-                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
                                             mRetryCount++;
                                         } else {
@@ -521,7 +522,7 @@ public class BuAPI {
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
                                         if (mRetryCount < 1) {
-                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
                                             mRetryCount++;
                                         } else {

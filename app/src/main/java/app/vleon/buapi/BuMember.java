@@ -34,7 +34,7 @@ public class BuMember {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        avatar = BuAPI.getImageAbsoluteUrl(avatar);
+        avatar = BuAPI.getAvailableUrl(avatar);
     }
 
 }

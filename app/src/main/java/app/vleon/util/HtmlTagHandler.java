@@ -24,14 +24,16 @@ public class HtmlTagHandler implements Html.TagHandler {
 
     @Override
     public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
-        if (opening) {
-            sIndex = output.length();
-        } else {
-            eIndex = output.length();
-        }
-        switch (tag) {
-            case "img":
-                output.setSpan(new MySpan(), sIndex, eIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        switch (tag.toLowerCase()) {
+            case "unknown":
+                if (opening) {
+                    sIndex = output.length();
+                } else {
+                    eIndex = output.length();
+//                    output.insert(eIndex,"============");
+                    output.setSpan(new MySpan(), sIndex, eIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
                 break;
             default:
                 break;
