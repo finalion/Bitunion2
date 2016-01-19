@@ -1,24 +1,20 @@
 package app.vleon.bitunion;
 
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.SparseBooleanArray;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
-import com.marshalchen.ultimaterecyclerview.ObservableScrollState;
-import com.marshalchen.ultimaterecyclerview.ObservableScrollViewCallbacks;
-import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
-import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -32,37 +28,26 @@ import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuLatestThread;
 import app.vleon.buapi.BuMember;
-import app.vleon.buapi.BuThread;
 import app.vleon.util.Utils;
 
-public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener, BuAPI.OnLatestResponseListener {
+public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInfoResponseListener,
+        LatestThreadsFragment.OnLatestThreadsFragmentInteractionListener, ForumThreadsFragment.OnForumThreadsFragmentInteractionListener {
 
-    private static final int DEFAULT_FORUM_ID = 0;  //默认显示最新帖子
     final int PROFILE_START_FLAG = 1000;
     final int LOGOUT_FLAG = 2000;
     MyApplication app;
-    ArrayList<BuThread> mThreadsList;
-    int mCurrentForumId;
-    int mFrom = 0;
-    int mTo = 20;
+    FragmentManager mFragmentManager;
+    Toolbar mToolbar;
     Drawer mDrawerResult = null;
     IProfile mMyProfile;
     AccountHeader mHeaderResult;
-    Toolbar mToolbar;
     Map<String, List<Map<String, String>>> mForumsList = null;
-    SparseBooleanArray openStatus2 = null;
-    /*Main ListView*/
-    private UltimateRecyclerView mThreadsRecyclerView;
-    private LinearLayoutManager mLayoutManager;
-    private ThreadsAdapter mAdapter;
-    private boolean clearFlag = false;
+    SparseBooleanArray openStatus = null;
 
     private void removeDrawerForumItems(int identifier) {
         if (mForumsList != null) {
@@ -92,16 +77,15 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_threads);
+        setContentView(R.layout.activity_main);
         app = (MyApplication) getApplicationContext();
-        mCurrentForumId = DEFAULT_FORUM_ID;    //默认论坛
-
+        mFragmentManager = getSupportFragmentManager();
         try {
             mForumsList = Utils.readJsonFromFile(getAssets().open("forums.json"));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        openStatus2 = new SparseBooleanArray() {
+        openStatus = new SparseBooleanArray() {
             {
                 put(13, false);
                 put(16, false);
@@ -111,91 +95,10 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
             }
         };
 
-        mThreadsList = new ArrayList<>();
-
         //设置toolbar
         mToolbar = (Toolbar) findViewById(R.id.activity_thread_toolbar);
         setSupportActionBar(mToolbar);
 //        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-
-        //设置主界面
-        mThreadsRecyclerView = (UltimateRecyclerView) findViewById(R.id.threads_recycler_view);
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mThreadsRecyclerView.setHasFixedSize(true);
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(this);
-        mThreadsRecyclerView.setLayoutManager(mLayoutManager);
-        // specify an adapter (see also next example)
-        mAdapter = new ThreadsAdapter(mThreadsList);
-        mThreadsRecyclerView.setAdapter(mAdapter);
-
-        mThreadsRecyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        mThreadsRecyclerView.enableLoadmore();
-        mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
-        mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
-            @Override
-            public void loadMore(int itemsCount, int maxLastVisiblePosition) {
-                clearFlag = false;
-                mFrom = mTo + 1;
-                mTo = mFrom + 20;
-                app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-            }
-        });
-
-        mThreadsRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-//                mThreadsRecyclerView.setRefreshing(false);
-                mLayoutManager.scrollToPosition(0);
-                clearFlag = true;
-                mFrom = 0;
-                mTo = 20;
-                app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-            }
-        });
-        mAdapter.setOnItemClickedListener(new ThreadsAdapter.OnRecyclerViewItemClickListener() {
-            @Override
-            public void onItemClick(View view, BuThread threadInfo) {
-                Intent intent = new Intent(ThreadsActivity.this, ThreadPostsActivity.class);
-                intent.putExtra("tid", threadInfo.tid);
-                startActivity(intent);
-            }
-        });
-
-        //floating action button
-        final JellyBeanFloatingActionButton floatingButton = (JellyBeanFloatingActionButton) findViewById(R.id.custom_urv_add_floating_button);
-        floatingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(ThreadsActivity.this, "floating button clicked", Toast.LENGTH_SHORT).show();
-            }
-        });
-        mThreadsRecyclerView.setScrollViewCallbacks(new ObservableScrollViewCallbacks() {
-            @Override
-            public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
-
-            }
-
-            @Override
-            public void onDownMotionEvent() {
-
-            }
-
-            @Override
-            public void onUpOrCancelMotionEvent(ObservableScrollState observableScrollState) {
-//                int screenHeight = findViewById(android.R.id.content).getHeight();
-//                if (observableScrollState == ObservableScrollState.DOWN) {
-//                    mThreadsRecyclerView.showToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
-//                    mThreadsRecyclerView.showView(floatingButton, mThreadsRecyclerView, screenHeight);
-//                } else if (observableScrollState == ObservableScrollState.UP) {
-//                    mThreadsRecyclerView.hideToolbar(mToolbar, mThreadsRecyclerView, screenHeight);
-//                    mThreadsRecyclerView.hideView(floatingButton, mThreadsRecyclerView, screenHeight);
-//                }
-            }
-        });
 
         //设置left drawer
         // Create the AccountHeader
@@ -210,7 +113,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withOnAccountHeaderProfileImageListener(new AccountHeader.OnAccountHeaderProfileImageListener() {
                     @Override
                     public boolean onProfileImageClick(View view, IProfile profile, boolean current) {
-                        Intent intent = new Intent(ThreadsActivity.this, PersonalInfoActivity.class);
+                        Intent intent = new Intent(MainActivity.this, PersonalInfoActivity.class);
                         intent.putExtra("uid", "me");
                         startActivity(intent);
                         return true;
@@ -226,7 +129,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                     public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                         if ((profile instanceof IDrawerItem) && ((IDrawerItem) profile).getIdentifier() == LOGOUT_FLAG) {
                             app.getAPI().logout();
-                            startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
+                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
                         }
                         return false;
                     }
@@ -257,6 +160,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                             public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                                 if (drawerItem != null) {
                                     int identifier = drawerItem.getIdentifier();
+                                    String tag = (String) drawerItem.getTag();
                                     switch (identifier) {
                                         case 13:
                                         case 16:
@@ -268,37 +172,31 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                                             removeDrawerForumItems(129);
                                             removeDrawerForumItems(166);
                                             removeDrawerForumItems(2);
-                                            boolean opened = openStatus2.get(identifier);
+                                            boolean opened = openStatus.get(identifier);
                                             //全部项置于关闭状态
-                                            openStatus2.put(13, false);
-                                            openStatus2.put(16, false);
-                                            openStatus2.put(129, false);
-                                            openStatus2.put(166, false);
-                                            openStatus2.put(2, false);
+                                            openStatus.put(13, false);
+                                            openStatus.put(16, false);
+                                            openStatus.put(129, false);
+                                            openStatus.put(166, false);
+                                            openStatus.put(2, false);
                                             if (opened) {
                                                 removeDrawerForumItems(identifier);
                                             } else {
                                                 int curPos = mDrawerResult.getPosition(drawerItem);
                                                 addDrawerForumItems(curPos, identifier);
                                             }
-                                            openStatus2.put(identifier, !opened);
+                                            openStatus.put(identifier, !opened);
                                             return true;
                                         case LOGOUT_FLAG:
                                             app.getAPI().logout();
-                                            startActivity(new Intent(ThreadsActivity.this, LoginActivity.class));
+                                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                                            break;
+                                        case 0:
+                                            showLatest();
                                             break;
                                         default:
-                                            mCurrentForumId = identifier;
-                                            mLayoutManager.scrollToPosition(0);
-                                            clearFlag = true;
-                                            mFrom = 0;
-                                            mTo = 20;
-                                            app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-                                            if (drawerItem.getTag() != null) {
-                                                getSupportActionBar().setTitle(drawerItem.getTag().toString());
-                                            } else {
-                                                getSupportActionBar().setTitle("北理FTP联盟");
-                                            }
+                                            showForum(identifier, tag);
+//                                            mLayoutManager.scrollToPosition(0);
                                             break;
                                     }
                                 }
@@ -314,30 +212,44 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 //        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
         if (savedInstanceState == null) {
-            mDrawerResult.setSelection(mCurrentForumId);
+//            mDrawerResult.setSelection(mForumId);
         }
-
-        app.getAPI().setOnThreadsResponseListener(this);
         app.getAPI().setOnMemberInfoResponseListener(this);
-        app.getAPI().setOnLatestThreadsResponseListener(this);
-//        if(DEFAULT_FORUM_ID==0)
-//        app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-//        else
-        app.getAPI().getLatestThreads();
+        showLatest();
     }
 
-//    @Override
-//    protected void onPostCreate(Bundle savedInstanceState) {
-//        super.onPostCreate(savedInstanceState);
-//        // Sync the toggle state after onRestoreInstanceState has occurred.
-//        mDrawerToggle.syncState();
-//    }
-//
-//    @Override
-//    public void onConfigurationChanged(Configuration newConfig) {
-//        super.onConfigurationChanged(newConfig);
-//        mDrawerToggle.onConfigurationChanged(newConfig);
-//    }
+    public void showLatest() {
+        getSupportActionBar().setTitle("最新帖子");
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        LatestThreadsFragment latestThreadsFragment = LatestThreadsFragment.newInstance();
+        transaction.replace(R.id.threads_fragment, latestThreadsFragment);
+        transaction.commit();
+    }
+
+    public void showForum(int fid, String name) {
+        if (name != null) {
+            getSupportActionBar().setTitle(name);
+        } else {
+            getSupportActionBar().setTitle("北理FTP联盟");
+        }
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        ForumThreadsFragment forumThreadsFragment = ForumThreadsFragment.newInstance(fid, name);
+        transaction.replace(R.id.threads_fragment, forumThreadsFragment);
+        transaction.commit();
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerResult.getActionBarDrawerToggle().syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerResult.getActionBarDrawerToggle().onConfigurationChanged(newConfig);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -360,48 +272,13 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_refresh) {
-            mThreadsList.clear();
-            mFrom = 0;
-            mTo = 20;
-            app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuThread> threadsList) {
-        if (clearFlag)
-            mThreadsList.clear();
-        switch (result) {
-            case SUCCESS:
-                mThreadsList.addAll(threadsList);
-                mAdapter.refresh(mThreadsList);
-                if (threadsList.size() < 20) {
-                    mThreadsRecyclerView.disableLoadmore();
-                }
-                break;
-            case IP_LOGGED:
-                // session失效，重新获取
-                break;
-            case SUCCESS_EMPTY:
-                mThreadsRecyclerView.disableLoadmore();
-                break;
-        }
-    }
-
-    @Override
-    public void handleThreadsGetterErrorResponse(VolleyError error) {
-        Toast.makeText(ThreadsActivity.this, "查询异常", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the accountHeader to the bundle
-//        outState = mDrawerResult.saveInstanceState(outState);
+        outState = mDrawerResult.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -423,42 +300,27 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 mMyProfile.withIcon(memberInfo.avatar);
                 mHeaderResult.updateProfile(mMyProfile);
                 break;
-            case IP_LOGGED:
-//                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
-                break;
             default:
-//                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "未知登录错误: " + app.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
 
     }
 
     @Override
     public void handleMemberInfoGetterErrorResponse(VolleyError error) {
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
 
     }
 
-
     @Override
-    public void handleLatestThreadsGetterResponse(BuAPI.Result result, ArrayList<BuLatestThread> latestThreadsList) {
-//        if (clearFlag)
-//            mThreadsList.clear();
-        switch (result) {
-            case SUCCESS:
-//                mThreadsList.addAll(threadsList);
-//                mAdapter.refresh(mThreadsList);
-                break;
-            case IP_LOGGED:
-                // session失效，重新获取
-                break;
-            case SUCCESS_EMPTY:
-                break;
-        }
-        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    public void onForumThreadsFragmentInteraction(Uri uri) {
+
     }
 
     @Override
-    public void handleLatestThreadsGetterErrorResponse(VolleyError error) {
-        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    public void onLatestThreadsFragmentInteraction(Uri uri) {
+
     }
 }

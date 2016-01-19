@@ -26,13 +26,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ThreadsActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"></activity>
         <activity
             android:name=".ThreadPostsActivity"
             android:label="@string/title_activity_thread_posts"
-            android:parentActivityName=".ThreadsActivity" />
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".PersonalInfoActivity"
             android:label="用户信息" />

@@ -11,4 +11,7 @@
     <string name="input_username">输入用户名</string>
     <string name="input_password">输入密码</string>
     <string name="encode_error">$ENCODE ERROR$</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

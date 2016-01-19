@@ -1,3 +1,5 @@
 1. SparseArray SparseBooleanArray 替代HashMap的使用
 
 2. Html.TagHandler只能处理未知标签。如果处理已知标签如<img>就会出错，找不到标签开始的位置，openning一直为false
+
+3. fragment create--->create view

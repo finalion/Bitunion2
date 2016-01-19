@@ -186,7 +186,7 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
             case SUCCESS:
                 app.getAPI().getMyInfo();
                 Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(LoginActivity.this, ThreadsActivity.class);
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 break;
             case IP_LOGGED:
