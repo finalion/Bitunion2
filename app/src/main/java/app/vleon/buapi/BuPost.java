@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 /**
  * Created by vleon on 2016/1/16.
  */
-public class BuPostInfo {
+public class BuPost {
     public String pid;
     public String fid;
     public String tid;
@@ -30,9 +30,9 @@ public class BuPostInfo {
     public String uid;
     public String username;
     public String avatar;
-    public String content;
-    public String trueAvatar;
+    // define
     public ArrayList<Quote> quotes;
+    public String content;
     String pstatus;
     String aaid;
     String creditsrequire;
@@ -44,11 +44,16 @@ public class BuPostInfo {
     String epid;
     String maskpost;
 
+    public boolean hasAttachment() {
+        return attachment != null;
+    }
+
     public void parse() {
         try {
             message = URLDecoder.decode(message, "UTF-8");
             avatar = URLDecoder.decode(avatar, "UTF-8");
-            if (attachment != null) {
+            if (hasAttachment()) {
+                filetype = URLDecoder.decode(filetype, "UTF-8");
                 attachment = BuAPI.getAvailableUrl(URLDecoder.decode(attachment, "UTF-8"));
             }
         } catch (UnsupportedEncodingException e) {
@@ -56,9 +61,12 @@ public class BuPostInfo {
         }
         this.avatar = getTrueAvatar();
         this.quotes = new ArrayList<>();
-        this.content = parseQuotes(removeBlankLines(message));
-        if (attachment != null) {
-            this.content += String.format("<br /><br /><i>附件</i><br /><img src=\"%s\">", attachment);
+        message = prettify(message);
+        this.content = parseQuotes(message);
+        if (hasAttachment()) {
+//            if (filetype.toLowerCase().equals("image/gif") || filetype.equals("image/jpeg") || filetype.equals("image/jpg") || filetype.equals("image/png") || filetype.equals("image/x-png"))
+            if (filetype.toLowerCase().startsWith("image/"))
+                this.content += String.format("<br /><br /><i>附件</i><br /><img src=\"%s\">", attachment);
         }
     }
 
@@ -67,26 +75,30 @@ public class BuPostInfo {
         Pattern p = Pattern.compile("<img src=\"(.*?)\"  border=\"0\">", Pattern.DOTALL);
         Matcher m = p.matcher(avatar);
         String finder;
-        while (m.find()) {
+        if (m.find()) {
             finder = m.group(1);
             return BuAPI.getAvailableUrl(finder);
         }
         return "";
     }
 
+    public String prettify(String message) {
+        return removeBlankLines(message);
+    }
+
     // 去除段前段后的换行符
-    private String removeBlankLines(String content) {
-        content = content.trim();
-        while (content.startsWith("<br>")) {
-            content = content.substring(4).trim();
+    private String removeBlankLines(String message) {
+        message = message.trim();
+        while (message.startsWith("<br>")) {
+            message = message.substring(4).trim();
         }
-        while (content.startsWith("<br />")) {
-            content = content.substring(6).trim();
+        while (message.startsWith("<br />")) {
+            message = message.substring(6).trim();
         }
-        while (content.endsWith("<br />")) {
-            content = content.substring(0, content.length() - 6).trim();
+        while (message.endsWith("<br />")) {
+            message = message.substring(0, message.length() - 6).trim();
         }
-        return content;
+        return message;
     }
 
     // 解析帖子的引用部分
@@ -106,14 +118,14 @@ public class BuPostInfo {
     }
 
     public class Quote {
-        public String quoteAuthor;
-        public String quoteTime;
-        public String quoteContent;
+        public String author;
+        public String time;
+        public String content;
 
         public Quote(String author, String time, String content) {
-            quoteAuthor = author;
-            quoteTime = time;
-            quoteContent = content;
+            this.author = author;
+            this.time = time;
+            this.content = content;
         }
     }
 

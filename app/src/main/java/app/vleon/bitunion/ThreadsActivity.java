@@ -37,12 +37,14 @@ import java.util.List;
 import java.util.Map;
 
 import app.vleon.buapi.BuAPI;
+import app.vleon.buapi.BuLatestThread;
 import app.vleon.buapi.BuMember;
 import app.vleon.buapi.BuThread;
 import app.vleon.util.Utils;
 
-public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener {
+public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThreadsResponseListener, BuAPI.OnMemberInfoResponseListener, BuAPI.OnLatestResponseListener {
 
+    private static final int DEFAULT_FORUM_ID = 0;  //默认显示最新帖子
     final int PROFILE_START_FLAG = 1000;
     final int LOGOUT_FLAG = 2000;
     MyApplication app;
@@ -92,7 +94,8 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threads);
         app = (MyApplication) getApplicationContext();
-        mCurrentForumId = 14;    //默认论坛
+        mCurrentForumId = DEFAULT_FORUM_ID;    //默认论坛
+
         try {
             mForumsList = Utils.readJsonFromFile(getAssets().open("forums.json"));
         } catch (Exception e) {
@@ -238,7 +241,7 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
                 .withActionBarDrawerToggleAnimated(true)
                 .withAccountHeader(mHeaderResult)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName("最新帖子").withTag(0),
+                        new PrimaryDrawerItem().withName("最新帖子").withIdentifier(0).withTag("最新帖子"),
                         new SectionDrawerItem().withName("收藏夹"),
                         new SectionDrawerItem().withName("论坛版块"),
                         new SecondaryDrawerItem().withName("苦中作乐区").withIdentifier(13).withSelectable(false),
@@ -316,7 +319,11 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 
         app.getAPI().setOnThreadsResponseListener(this);
         app.getAPI().setOnMemberInfoResponseListener(this);
-        app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
+        app.getAPI().setOnLatestThreadsResponseListener(this);
+//        if(DEFAULT_FORUM_ID==0)
+//        app.getAPI().getThreadsList(mCurrentForumId, mFrom, mTo);
+//        else
+        app.getAPI().getLatestThreads();
     }
 
 //    @Override
@@ -423,13 +430,35 @@ public class ThreadsActivity extends AppCompatActivity implements BuAPI.OnThread
 //                Toast.makeText(this, "未知登录错误: " + mAPI.getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
-        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+
     }
 
     @Override
     public void handleMemberInfoGetterErrorResponse(VolleyError error) {
-        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+
     }
 
 
+    @Override
+    public void handleLatestThreadsGetterResponse(BuAPI.Result result, ArrayList<BuLatestThread> latestThreadsList) {
+//        if (clearFlag)
+//            mThreadsList.clear();
+        switch (result) {
+            case SUCCESS:
+//                mThreadsList.addAll(threadsList);
+//                mAdapter.refresh(mThreadsList);
+                break;
+            case IP_LOGGED:
+                // session失效，重新获取
+                break;
+            case SUCCESS_EMPTY:
+                break;
+        }
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    }
+
+    @Override
+    public void handleLatestThreadsGetterErrorResponse(VolleyError error) {
+        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    }
 }

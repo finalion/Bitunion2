@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.vleon.bitunion.R;
+import app.vleon.buapi.BuAPI;
 
 public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callback {
 
@@ -53,10 +54,7 @@ public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callba
     public Drawable getDrawable(String url) {
         final UrlDrawable urlDrawable = new UrlDrawable();
         System.out.println("Downloading from: " + url);
-        // customed!
-        // // TODO: 2015/11/4
-        url = url.replace("http://www.bitunion.org", "http://out.bitunion.org");
-        url = url.replace("http://bitunion.org", "http://out.bitunion.org");
+        url = BuAPI.getAvailableUrl(url);
         Glide.with(mContext)
                 .load(url)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)

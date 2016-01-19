@@ -87,11 +87,17 @@ public class Utils {
             for (final URLSpan span : urls) {
                 setLinkClickable(clickableHtmlBuilder, span, clickableSpanListener);
             }
+
+            // TODO: 2016/1/19  以下获取img标签，可进行点击处理
+//            ImageSpan[] imgs = clickableHtmlBuilder.getSpans(0, spannedHtml.length(), ImageSpan.class);
+//            for (final ImageSpan span : imgs) {
+//
+//            }
         }
         return clickableHtmlBuilder;
     }
 
-    public static interface OnClickedClickableSpanListener {
+    public interface OnClickedClickableSpanListener {
         void onClick(View view, URLSpan urlSpan);
     }
 }

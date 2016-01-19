@@ -20,18 +20,18 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuPostInfo;
+import app.vleon.buapi.BuPost;
 import app.vleon.util.GlideImageGetter;
 import app.vleon.util.HtmlTagHandler;
 import app.vleon.util.Utils;
 
 public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.ViewHolder> implements View.OnClickListener {
-    private ArrayList<BuPostInfo> mDataset;
+    private ArrayList<BuPost> mDataset;
     private Context mContext;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public ThreadPostsAdapter(Context context, ArrayList<BuPostInfo> dataset) {
+    public ThreadPostsAdapter(Context context, ArrayList<BuPost> dataset) {
         mDataset = dataset;
         mContext = context;
     }
@@ -54,7 +54,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            final BuPostInfo postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            final BuPost postInfo = (mDataset.get(customHeaderView != null ? position - 1 : position));
             if (postInfo.subject.equals("")) {
                 holder.mSubjectTextView.setVisibility(View.GONE);
             } else {
@@ -103,12 +103,12 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     holder.mQuotesTextView.setVisibility(View.VISIBLE);
                     // 显示引用信息部分
                     String quoteString = "";
-                    BuPostInfo.Quote tmpQuote;
+                    BuPost.Quote tmpQuote;
                     for (int i = 0; i < postInfo.quotes.size(); i++) {
                         tmpQuote = postInfo.quotes.get(i);
                         if (i > 0)
                             quoteString += "<br/><br/>";
-                        quoteString += tmpQuote.quoteAuthor + ":&nbsp;" + tmpQuote.quoteContent;
+                        quoteString += tmpQuote.author + ":&nbsp;" + tmpQuote.content;
                     }
                     holder.mQuotesTextView.setText(Html.fromHtml(quoteString, new GlideImageGetter(mContext, holder.mQuotesTextView), null));
                 } else {
@@ -159,17 +159,17 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     @Override
     public void onClick(View view) {
         if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(view, (BuPostInfo) view.getTag());
+            mOnItemClickListener.onItemClick(view, (BuPost) view.getTag());
         }
     }
 
-    public void refresh(ArrayList<BuPostInfo> dataset) {
+    public void refresh(ArrayList<BuPost> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
 
     public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, BuPostInfo data);
+        void onItemClick(View view, BuPost data);
     }
 
     // Provide a reference to the views for each data item

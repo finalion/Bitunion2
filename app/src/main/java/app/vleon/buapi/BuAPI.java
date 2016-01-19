@@ -41,6 +41,7 @@ public class BuAPI {
     private final int RETRY_GETTHREADS_FLAG = 1;
     private final int RETRY_GETPOSTS_FLAG = 2;
     private final int RETRY_GETMEMBER_FLAG = 3;
+    private final int RETRY_GETLATEST_FLAG = 4;
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
     String mUsername, mPassword;
@@ -50,8 +51,8 @@ public class BuAPI {
     int mPostsTid;
     int mPostsFrom;
     int mPostsTo;
-    String mQueryUid;
 
+    String mQueryUid;
     Context mContext;
     int mNetType;
     private RequestQueue mRequestQueue;
@@ -63,7 +64,7 @@ public class BuAPI {
     private Result mPostsResult = Result.NULL;
     private Result mMemberResult = Result.NULL;
     private Result mLatestResult = Result.NULL;
-    private OnLatestResponseListener mOnLatestResponseListener;
+    private OnLatestResponseListener mOnLatestResponseListener = null;
 
     public BuAPI(Context context) {
         mContext = context;
@@ -94,13 +95,16 @@ public class BuAPI {
     }
 
     public static String getAvailableUrl(String rawUrl) {
+        String url;
         if (rawUrl.startsWith("http://")) {
-            rawUrl = rawUrl.replace("http://www.bitunion.org", ROOTURL);  //// TODO: 2015/11/4
-            rawUrl = rawUrl.replace("http://bitunion.org", ROOTURL);
-            return rawUrl;
+            url = rawUrl.replace("http://www.bitunion.org/", ROOTURL);  //// TODO: 2015/11/4
+            url = url.replace("http://bitunion.org/", ROOTURL);
+        } else if (rawUrl.startsWith(".../")) {
+            url = rawUrl.replace("../", ROOTURL);
         } else {
-            return ROOTURL + rawUrl;
+            url = ROOTURL + rawUrl;
         }
+        return url;
     }
 
     public static String formatTime(String timeStr) {
@@ -151,24 +155,27 @@ public class BuAPI {
 
     public HashMap<String, String> buildPostParams(String action) {
         HashMap<String, String> params = new HashMap<>();
-        params.put("action", action);
         switch (action) {
             case "login":
+                params.put("action", action);
                 params.put("username", mUsername);
                 params.put("password", mPassword);
                 break;
             case "logout":
+                params.put("action", action);
                 params.put("username", mUsername);
                 params.put("password", mPassword);
                 params.put("session", getSession());
                 break;
             case "profile":
+                params.put("action", action);
                 params.put("username", mUsername);
                 params.put("session", getSession());
                 params.put("uid", mQueryUid);
 //        params.put("queryusername", username);
                 break;
             case "thread":
+                params.put("action", action);
                 params.put("username", mUsername);
                 params.put("session", getSession());
                 params.put("fid", mThreadsFid + "");
@@ -176,11 +183,16 @@ public class BuAPI {
                 params.put("to", mThreadsTo + ""); // to=100, thread+number+error
                 break;
             case "post":
+                params.put("action", action);
                 params.put("username", mUsername);
                 params.put("session", getSession());
                 params.put("tid", mPostsTid + "");
                 params.put("from", mPostsFrom + "");
                 params.put("to", mPostsTo + ""); // to=100, thread+number+error
+                break;
+            case "latest":
+                params.put("username", mUsername);
+                params.put("session", getSession());
                 break;
         }
         return params;
@@ -399,11 +411,8 @@ public class BuAPI {
      * 查询论坛最新帖子
      */
     public void getLatestThreads() {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("username", mLoginInfo.username);
-        params.put("session", mLoginInfo.session);
         JsonObjectRequest latestRequest = new JsonObjectRequest(BuAPI.LATEST_URL,
-                new JSONObject(params),
+                new JSONObject(buildPostParams("latest")),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -437,7 +446,7 @@ public class BuAPI {
                                         // session失效时，返回该msg，需要重新获取session
                                         if (mRetryCount < 1) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
-                                            login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
+                                            login(mUsername, mPassword, RETRY_GETLATEST_FLAG);
                                             mRetryCount++;
                                         } else {
                                             //重试一次之后仍然返回IP LOGGED，不再重试
@@ -499,13 +508,13 @@ public class BuAPI {
                             String result = response.getString("result");
                             if (result.equals("success")) {
                                 mRetryCount = 0;
-                                ArrayList<BuPostInfo> tempList = null;
+                                ArrayList<BuPost> tempList = null;
                                 if (response.has("postlist")) {
                                     mPostsResult = Result.SUCCESS;
                                     String tmp = response.getJSONArray("postlist").toString();
-                                    tempList = gson.fromJson(tmp, new TypeToken<List<BuPostInfo>>() {
+                                    tempList = gson.fromJson(tmp, new TypeToken<List<BuPost>>() {
                                     }.getType());
-                                    for (BuPostInfo post : tempList) {
+                                    for (BuPost post : tempList) {
                                         post.parse();
                                     }
                                 } else {
@@ -556,6 +565,11 @@ public class BuAPI {
     public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
         mOnLoginResponseListener = lrl;
     }
+
+    public void setOnLatestThreadsResponseListener(OnLatestResponseListener ltrl) {
+        mOnLatestResponseListener = ltrl;
+    }
+
 
     public void setOnMemberInfoResponseListener(OnMemberInfoResponseListener mrl) {
         mOnMemberInfoResponseListener = mrl;
@@ -610,7 +624,7 @@ public class BuAPI {
     }
 
     public interface OnPostsResponseListener {
-        void handlePostsGetterResponse(Result result, ArrayList<BuPostInfo> postsList);
+        void handlePostsGetterResponse(Result result, ArrayList<BuPost> postsList);
 
         void handlePostsGetterErrorResponse(VolleyError error);
     }
