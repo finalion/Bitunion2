@@ -129,7 +129,10 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
                     public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                         if ((profile instanceof IDrawerItem) && ((IDrawerItem) profile).getIdentifier() == LOGOUT_FLAG) {
                             app.getAPI().logout();
-                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                            getSharedPreferences("lastlogin", MODE_PRIVATE).edit().clear().apply();
+                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                            intent.putExtra("from", "logout_menu");
+                            startActivity(intent);
                         }
                         return false;
                     }
@@ -187,10 +190,6 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
                                             }
                                             openStatus.put(identifier, !opened);
                                             return true;
-                                        case LOGOUT_FLAG:
-                                            app.getAPI().logout();
-                                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                                            break;
                                         case 0:
                                             showLatest();
                                             break;

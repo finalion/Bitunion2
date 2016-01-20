@@ -44,16 +44,20 @@ public class BuAPI {
     private final int RETRY_GETLATEST_FLAG = 4;
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
-    String mUsername, mPassword;
+
+    String mUsername;
+
+    String mPassword;
+
     int mThreadsFid;
     int mThreadsFrom;
     int mThreadsTo;
     int mPostsTid;
     int mPostsFrom;
     int mPostsTo;
-
     String mQueryUid;
     Context mContext;
+
     int mNetType;
     private RequestQueue mRequestQueue;
     private OnLoginResponseListener mOnLoginResponseListener = null;
@@ -65,21 +69,10 @@ public class BuAPI {
     private Result mMemberResult = Result.NULL;
     private Result mLatestResult = Result.NULL;
     private OnLatestResponseListener mOnLatestResponseListener = null;
-
     public BuAPI(Context context) {
         mContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
         setNetType(OUTNET);
-    }
-
-    public static void setInnerNet() {
-        ROOTURL = "http://www.bitunion.org/";
-        buildUrls();
-    }
-
-    public static void setOuterNet() {
-        ROOTURL = "http://out.bitunion.org/";
-        buildUrls();
     }
 
     private static void buildUrls() {
@@ -115,6 +108,14 @@ public class BuAPI {
     public static String formatTime(String timeStr, String format) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.CHINA);
         return dateFormat.format(new Date(Long.valueOf(timeStr) * 1000L));
+    }
+
+    public String getUsername() {
+        return mUsername;
+    }
+
+    public String getPassword() {
+        return mPassword;
     }
 
     public void setNetType(int net) {

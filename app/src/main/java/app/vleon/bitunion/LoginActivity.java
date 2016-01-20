@@ -3,7 +3,9 @@ package app.vleon.bitunion;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +23,8 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
+import java.util.Map;
+
 import app.vleon.buapi.BuAPI;
 
 /**
@@ -29,13 +33,13 @@ import app.vleon.buapi.BuAPI;
 public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginResponseListener {
 
     MyApplication app;
-
+    Toolbar mToolbar;
+    boolean mDirectLoginFlag = false;
     // UI references.
     private EditText mUsernameView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-
 //    @TargetApi(19)
 //    private void setTranslucentStatus(boolean on) {
 //        Window win = getWindow();
@@ -54,22 +58,36 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         app = (MyApplication) getApplicationContext();
-        //设置toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(mToolbar);
+        app.getAPI().setOnLoginResponseListener(this);
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//            setTranslucentStatus(true);
-//        }
-//        final SystemBarTintManager tintManager = new SystemBarTintManager(this);
-//        tintManager.setStatusBarTintEnabled(true);
-//        tintManager.setNavigationBarTintEnabled(true);
-//        tintManager.setStatusBarTintColor(Color.parseColor("#035B33"));
-//        setTranslucentStatus(true);
+        mLoginFormView = findViewById(R.id.login_form);
+        mProgressView = findViewById(R.id.login_progress);
+        //设置toolbar
+        mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(mToolbar);
 
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
+
+        Intent intent = getIntent();
+        String from = intent.getStringExtra("from");
+        if (from == null) {
+            Map<String, ?> msg = getSavedMsg();
+            if (msg.get("username") != null && msg.get("password") != null) {
+                mUsernameView.clearFocus();
+                mPasswordView.clearFocus();
+                showProgress(true);
+                mToolbar.setVisibility(View.GONE);
+                mDirectLoginFlag = true;
+                login(msg.get("username").toString(), msg.get("password").toString(), BuAPI.OUTNET);
+                return;
+            }
+        } else if (from.equals("logout_menu")) {
+            mUsernameView.setText(app.getAPI().getUsername());
+            mPasswordView.setText(app.getAPI().getPassword());
+        }
+
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -88,12 +106,6 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
                 attemptLogin();
             }
         });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-
-        app.getAPI().setOnLoginResponseListener(this);
-//        app.getAPI().setOnMemberInfoResponseListener(this);
     }
 
     /**
@@ -133,14 +145,16 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
             // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            BuAPI.setOuterNet();
-            // TODO: 2015/11/5
-            app.getAPI().login("vleon", "fengliang20701159");
-//            mAPI.login(username, password);
+            login(username, password, BuAPI.OUTNET);
         }
+    }
+
+    public void login(String username, String password, int net) {
+        // Show a progress spinner, and kick off a background task to
+        // perform the user login attempt.
+        showProgress(true);
+        app.getAPI().setNetType(net);
+        app.getAPI().login(username, password);
     }
 
     /**
@@ -181,22 +195,32 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
 
     @Override
     public void handleLoginResponse() {
-        showProgress(false);
         switch (app.getAPI().getLoginResult()) {
             case SUCCESS:
+                //登录成功保存信息，下次使用
+                saveMsg(app.getAPI().getUsername(), app.getAPI().getPassword());
                 app.getAPI().getMyInfo();
-                Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
+                if (mDirectLoginFlag) {
+                    finish();
+                    overridePendingTransition(0, 0);
+                    return;
+                }
                 break;
             case IP_LOGGED:
 //                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                mUsernameView.requestFocus();
                 mPasswordView.setError("用户名或密码错误");
                 break;
             default:
                 Toast.makeText(this, "未知登录错误: " + app.getAPI().getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
+        mToolbar.setVisibility(View.VISIBLE);
+        showProgress(false);
     }
 
     @Override
@@ -204,6 +228,19 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         Log.d("TAG", error.getMessage(), error);
         Toast.makeText(LoginActivity.this, "登录异常: " + error.getMessage(), Toast.LENGTH_SHORT).show();
         showProgress(false);
+    }
+
+    public void saveMsg(String username, String password) {
+        SharedPreferences sharedPreferences = getSharedPreferences("lastlogin", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("username", username).putString("password", password).apply();
+    }
+
+    public Map<String, ?> getSavedMsg() {
+        SharedPreferences sharedPreferences = getSharedPreferences("lastlogin", Context.MODE_PRIVATE);
+//        String username = sharedPreferences.getString("username", null);
+//        String password = sharedPreferences.getString("password",null);
+        return sharedPreferences.getAll();
     }
 
 }
