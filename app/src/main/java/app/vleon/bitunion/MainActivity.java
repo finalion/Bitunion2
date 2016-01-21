@@ -31,9 +31,9 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import java.util.List;
 import java.util.Map;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuMember;
-import app.vleon.util.Utils;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuMember;
+import app.vleon.bitunion.util.Utils;
 
 public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInfoResponseListener,
         LatestThreadsFragment.OnLatestThreadsFragmentInteractionListener, ForumThreadsFragment.OnForumThreadsFragmentInteractionListener {
@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
     AccountHeader mHeaderResult;
     Map<String, List<Map<String, String>>> mForumsList = null;
     SparseBooleanArray openStatus = null;
+
 
     private void removeDrawerForumItems(int identifier) {
         if (mForumsList != null) {
@@ -214,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
 //            mDrawerResult.setSelection(mForumId);
         }
         app.getAPI().setOnMemberInfoResponseListener(this);
+        app.getAPI().getMyInfo();
         showLatest();
     }
 

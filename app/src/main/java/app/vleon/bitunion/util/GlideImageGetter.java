@@ -1,4 +1,4 @@
-package app.vleon.util;
+package app.vleon.bitunion.util;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.vleon.bitunion.R;
-import app.vleon.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuAPI;
 
 public final class GlideImageGetter implements Html.ImageGetter, Drawable.Callback {
 

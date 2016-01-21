@@ -1,4 +1,4 @@
-package app.vleon.buapi;
+package app.vleon.bitunion.buapi;
 
 import android.content.Context;
 import android.util.Log;
@@ -23,10 +23,7 @@ import java.util.Locale;
 
 
 public class BuAPI {
-    public static final int NETERROR = -1;
-    public static final int SESSIONERROR = 0;
-    public static final int NONE = 1;
-    public static final int UNKNOWNERROR = -2;
+
     public static final int OUTNET = 1;
     public static final int BITNET = 0;
     // {"result":"fail","msg":"IP+logged"}
@@ -44,11 +41,8 @@ public class BuAPI {
     private final int RETRY_GETLATEST_FLAG = 4;
     public LoginInfo mLoginInfo;
     int mRetryCount = 0;
-
     String mUsername;
-
     String mPassword;
-
     int mThreadsFid;
     int mThreadsFrom;
     int mThreadsTo;
@@ -57,7 +51,6 @@ public class BuAPI {
     int mPostsTo;
     String mQueryUid;
     Context mContext;
-
     int mNetType;
     private RequestQueue mRequestQueue;
     private OnLoginResponseListener mOnLoginResponseListener = null;
@@ -116,6 +109,10 @@ public class BuAPI {
 
     public String getPassword() {
         return mPassword;
+    }
+
+    public int getNetType() {
+        return mNetType;
     }
 
     public void setNetType(int net) {
@@ -562,7 +559,6 @@ public class BuAPI {
         mRequestQueue.add(postsRequest);
     }
 
-
     public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
         mOnLoginResponseListener = lrl;
     }
@@ -570,7 +566,6 @@ public class BuAPI {
     public void setOnLatestThreadsResponseListener(OnLatestResponseListener ltrl) {
         mOnLatestResponseListener = ltrl;
     }
-
 
     public void setOnMemberInfoResponseListener(OnMemberInfoResponseListener mrl) {
         mOnMemberInfoResponseListener = mrl;

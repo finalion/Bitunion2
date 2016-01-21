@@ -19,11 +19,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuPost;
-import app.vleon.util.GlideImageGetter;
-import app.vleon.util.HtmlTagHandler;
-import app.vleon.util.Utils;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.util.GlideImageGetter;
+import app.vleon.bitunion.util.HtmlTagHandler;
+import app.vleon.bitunion.util.Utils;
 
 public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.ViewHolder> implements View.OnClickListener {
     private ArrayList<BuPost> mDataset;

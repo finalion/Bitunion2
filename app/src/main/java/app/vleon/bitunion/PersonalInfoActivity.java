@@ -13,9 +13,9 @@ import com.android.volley.VolleyError;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuMember;
-import app.vleon.util.GlideImageGetter;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuMember;
+import app.vleon.bitunion.util.GlideImageGetter;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class PersonalInfoActivity extends AppCompatActivity {

@@ -26,8 +26,8 @@ import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFlo
 
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuThread;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuThread;
 
 
 /**

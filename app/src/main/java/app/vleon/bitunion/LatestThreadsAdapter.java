@@ -14,7 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuLatestThread;
+import app.vleon.bitunion.buapi.BuLatestThread;
 
 /**
  * Created by vleon on 2016/1/20.

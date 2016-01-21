@@ -12,8 +12,8 @@ import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuMember;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuMember;
 
 /**
  * Created by vleon on 2016/1/10.

@@ -1,4 +1,4 @@
-package app.vleon.ui;
+package app.vleon.bitunion.ui;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -13,11 +13,10 @@ import android.view.View;
 
 public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 
+    int mOrientation = -1;
     private Drawable mDivider;
     private boolean mShowFirstDivider = false;
     private boolean mShowLastDivider = false;
-
-    int mOrientation = -1;
 
     public DividerItemDecoration(Context context, AttributeSet attrs) {
         final TypedArray a = context

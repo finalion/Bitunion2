@@ -22,8 +22,8 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
 
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuLatestThread;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuLatestThread;
 
 
 /**

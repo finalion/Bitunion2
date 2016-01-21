@@ -24,9 +24,9 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
 
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuPost;
-import app.vleon.ui.DividerItemDecoration;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.ui.DividerItemDecoration;
 
 public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener {
 

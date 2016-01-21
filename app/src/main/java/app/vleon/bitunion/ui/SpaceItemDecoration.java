@@ -1,4 +1,4 @@
-package app.vleon.ui;
+package app.vleon.bitunion.ui;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -9,10 +9,9 @@ import android.view.View;
 
 public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
     private final int mSpace;
+    int mOrientation = -1;
     private boolean mShowFirstDivider = false;
     private boolean mShowLastDivider = false;
-
-    int mOrientation = -1;
 
     public SpaceItemDecoration(Context context, AttributeSet attrs) {
         mSpace = 0;

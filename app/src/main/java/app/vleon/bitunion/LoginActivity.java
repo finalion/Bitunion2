@@ -17,41 +17,30 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
-import java.util.Map;
-
-import app.vleon.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuAPI;
 
 /**
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginResponseListener {
 
+    public int mNet;
     MyApplication app;
     Toolbar mToolbar;
-    boolean mDirectLoginFlag = false;
     // UI references.
     private EditText mUsernameView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-//    @TargetApi(19)
-//    private void setTranslucentStatus(boolean on) {
-//        Window win = getWindow();
-//        WindowManager.LayoutParams winParams = win.getAttributes();
-//        final int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
-//        if (on) {
-//            winParams.flags |= bits;
-//        } else {
-//            winParams.flags &= ~bits;
-//        }
-//        win.setAttributes(winParams);
-//    }
+    private Switch mNetSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,27 +54,42 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         //设置toolbar
         mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
+        mNetSwitch = (Switch) findViewById(R.id.switchNet);
+        mNetSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mNet = isChecked ? 1 : 0;
+            }
+        });
+//        mToolbar.addView(LayoutInflater.from(this).);
 
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
+        Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
+        mSignInButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptLogin();
+            }
+        });
 
         Intent intent = getIntent();
+        // 点击了left drawer中的注销菜单
         String from = intent.getStringExtra("from");
-        if (from == null) {
-            Map<String, ?> msg = getSavedMsg();
-            if (msg.get("username") != null && msg.get("password") != null) {
-                mUsernameView.clearFocus();
-                mPasswordView.clearFocus();
-                showProgress(true);
-                mToolbar.setVisibility(View.GONE);
-                mDirectLoginFlag = true;
-                login(msg.get("username").toString(), msg.get("password").toString(), BuAPI.OUTNET);
-                return;
-            }
-        } else if (from.equals("logout_menu")) {
+        if (from != null && from.equals("logout_menu")) {
             mUsernameView.setText(app.getAPI().getUsername());
             mPasswordView.setText(app.getAPI().getPassword());
+            mNetSwitch.setChecked(app.getAPI().getNetType() == BuAPI.OUTNET);
+        }
+        //直接登录失败
+        int autologinResult = intent.getIntExtra("autologin_result", -1);
+        if (autologinResult != -1) {
+            SharedPreferences sp = getSharedPreferences("lastlogin", Context.MODE_PRIVATE);
+            mUsernameView.setText(sp.getString("username", ""));
+            mPasswordView.setText(sp.getString("password", ""));
+            mNetSwitch.setChecked(sp.getInt("net", 1) == BuAPI.OUTNET);
+            handleLoginFailure(autologinResult);
         }
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -96,14 +100,6 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
                     return true;
                 }
                 return false;
-            }
-        });
-
-        Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
-        mSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
             }
         });
     }
@@ -145,7 +141,7 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
             // form field with an error.
             focusView.requestFocus();
         } else {
-            login(username, password, BuAPI.OUTNET);
+            login(username, password, mNet);
         }
     }
 
@@ -198,17 +194,14 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         switch (app.getAPI().getLoginResult()) {
             case SUCCESS:
                 //登录成功保存信息，下次使用
-                saveMsg(app.getAPI().getUsername(), app.getAPI().getPassword());
-                app.getAPI().getMyInfo();
+                saveMsg(app.getAPI().getUsername(), app.getAPI().getPassword(), app.getAPI().getNetType());
+//                app.getAPI().getMyInfo();
 //                Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
-                if (mDirectLoginFlag) {
-                    finish();
-                    overridePendingTransition(0, 0);
-                    return;
-                }
+                finish();
+                overridePendingTransition(0, 0);
                 break;
             case IP_LOGGED:
 //                Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
@@ -219,29 +212,28 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
                 Toast.makeText(this, "未知登录错误: " + app.getAPI().getLoginInfo().msg, Toast.LENGTH_SHORT).show();
                 break;
         }
-        mToolbar.setVisibility(View.VISIBLE);
         showProgress(false);
     }
 
     @Override
     public void handleLoginErrorResponse(VolleyError error) {
+        // 网络问题，返回Volley.TimeoutError
         Log.d("TAG", error.getMessage(), error);
         Toast.makeText(LoginActivity.this, "登录异常: " + error.getMessage(), Toast.LENGTH_SHORT).show();
         showProgress(false);
     }
 
-    public void saveMsg(String username, String password) {
+    public void handleLoginFailure(int result) {
+        switch (result) {
+
+        }
+
+    }
+
+    public void saveMsg(String username, String password, int net) {
         SharedPreferences sharedPreferences = getSharedPreferences("lastlogin", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username", username).putString("password", password).apply();
+        editor.putString("username", username).putString("password", password).putInt("net", net).apply();
     }
-
-    public Map<String, ?> getSavedMsg() {
-        SharedPreferences sharedPreferences = getSharedPreferences("lastlogin", Context.MODE_PRIVATE);
-//        String username = sharedPreferences.getString("username", null);
-//        String password = sharedPreferences.getString("password",null);
-        return sharedPreferences.getAll();
-    }
-
 }
 

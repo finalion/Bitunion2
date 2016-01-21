@@ -14,8 +14,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
-import app.vleon.buapi.BuAPI;
-import app.vleon.buapi.BuThread;
+import app.vleon.bitunion.buapi.BuAPI;
+import app.vleon.bitunion.buapi.BuThread;
 
 public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> {
     private ArrayList<BuThread> mDataset;

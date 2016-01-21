@@ -1,4 +1,4 @@
-package app.vleon.buapi;
+package app.vleon.bitunion.buapi;
 
 /**
  * Created by vleon on 2016/1/1.
