@@ -1,4 +1,4 @@
-package app.vleon.bitunion;
+package app.vleon.bitunion.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -26,6 +26,10 @@ import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFlo
 
 import java.util.ArrayList;
 
+import app.vleon.bitunion.MyApplication;
+import app.vleon.bitunion.R;
+import app.vleon.bitunion.ThreadPostsActivity;
+import app.vleon.bitunion.ThreadsAdapter;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuThread;
 
@@ -38,7 +42,7 @@ import app.vleon.bitunion.buapi.BuThread;
  * Use the {@link ForumThreadsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsResponseListener {
+public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsResponseListener, BuAPI.OnPostNewThreadResponseListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String FORUM_ID = "fid";
@@ -102,6 +106,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                 startActivity(intent);
             }
         });
+        app.getAPI().setOnPostNewThreadResponseListener(this);
         app.getAPI().setOnThreadsResponseListener(this);
         app.getAPI().getThreadsList(mForumId, mFrom, mTo);
     }
@@ -117,6 +122,13 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 //        showProgress(true);
         //floating action button
         mFloatingButton = (JellyBeanFloatingActionButton) view.findViewById(R.id.custom_urv_add_floating_button);
+        mFloatingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PostDialogFragment pdf = new PostDialogFragment();
+                pdf.show(getActivity().getSupportFragmentManager(), "post_dialog");
+            }
+        });
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         // use a linear layout manager
@@ -145,12 +157,6 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                 mFrom = 0;
                 mTo = 20;
                 app.getAPI().getThreadsList(mForumId, mFrom, mTo);
-            }
-        });
-        mFloatingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getActivity(), "floating button clicked", Toast.LENGTH_SHORT).show();
             }
         });
         mThreadsRecyclerView.setScrollViewCallbacks(new ObservableScrollViewCallbacks() {
@@ -266,6 +272,25 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
             mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
             mThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
+    }
+
+    @Override
+    public void handlePostNewThreadResponse(BuAPI.Result result, String tid) {
+        if (result == BuAPI.Result.SUCCESS && tid != null) {
+//            clearFlag = true;
+//            mFrom = 0;
+//            mTo = 20;
+//
+//            app.getAPI().getThreadPosts(mForumId, mFrom, mTo);
+            Intent intent = new Intent(getActivity(), ThreadPostsActivity.class);
+            intent.putExtra("tid", tid);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void handlePostNewThreadErrorResponse(VolleyError error) {
+
     }
 
     /**

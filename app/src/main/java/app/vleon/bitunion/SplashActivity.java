@@ -51,18 +51,20 @@ public class SplashActivity extends AppCompatActivity implements BuAPI.OnLoginRe
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
                 finish();
-                overridePendingTransition(0, 0);
+//                overridePendingTransition(0, 0);
                 break;
             case IP_LOGGED:
                 Intent intent1 = new Intent(this, LoginActivity.class);
 //                intent1.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 intent1.putExtra("autologin_result", "ip_logged");
                 startActivity(intent1);
+                finish();
                 break;
             default:
                 Intent intent2 = new Intent(this, LoginActivity.class);
                 intent2.putExtra("autologin_result", "unknown");
                 startActivity(intent2);
+                finish();
                 break;
         }
     }

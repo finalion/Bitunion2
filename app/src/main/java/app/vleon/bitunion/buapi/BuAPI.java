@@ -3,6 +3,7 @@ package app.vleon.bitunion.buapi;
 import android.content.Context;
 import android.util.Log;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -14,22 +15,30 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import app.vleon.bitunion.util.MultipartRequest;
 
 
 public class BuAPI {
 
     public static final int OUTNET = 1;
     public static final int BITNET = 0;
+    private static final int RETRY_NEWTHREAD_FLAG = 5;
     // {"result":"fail","msg":"IP+logged"}
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
-            POST_URL, PROFILE_URL, NEWPOST, NEWTHREAD, LATEST_URL;
+            POST_URL, PROFILE_URL, NEWPOST_URL, NEWTHREAD_URL, LATEST_URL;
     public static String URL_EMOTICON_IMAGE_PREFIX;
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
@@ -43,25 +52,29 @@ public class BuAPI {
     int mRetryCount = 0;
     String mUsername;
     String mPassword;
-    int mThreadsFid;
+    int mForumFid;
     int mThreadsFrom;
     int mThreadsTo;
-    int mPostsTid;
+    int mThreadTid;
     int mPostsFrom;
     int mPostsTo;
     String mQueryUid;
     Context mContext;
     int mNetType;
+    private String mPostSubject;
+    private String mPostMessage;
     private RequestQueue mRequestQueue;
     private OnLoginResponseListener mOnLoginResponseListener = null;
     private OnThreadsResponseListener mOnThreadsResponseListener = null;
     private OnPostsResponseListener mOnPostsResponseListener = null;
     private OnMemberInfoResponseListener mOnMemberInfoResponseListener = null;
+    private OnPostNewThreadResponseListener mOnPostNewThreadResponseListener = null;
     private Result mThreadsResult = Result.NULL;
     private Result mPostsResult = Result.NULL;
     private Result mMemberResult = Result.NULL;
     private Result mLatestResult = Result.NULL;
     private OnLatestResponseListener mOnLatestResponseListener = null;
+
     public BuAPI(Context context) {
         mContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
@@ -75,8 +88,8 @@ public class BuAPI {
         THREAD_URL = BASEURL + "bu_thread.php";
         PROFILE_URL = BASEURL + "bu_profile.php";
         POST_URL = BASEURL + "bu_post.php";
-        NEWPOST = BASEURL + "bu_newpost.php";
-        NEWTHREAD = BASEURL + "bu_newpost.php";
+        NEWPOST_URL = BASEURL + "bu_newpost.php";
+        NEWTHREAD_URL = BASEURL + "bu_newpost.php";
         LATEST_URL = BASEURL + "bu_home.php";
     }
 
@@ -151,8 +164,8 @@ public class BuAPI {
         return mLoginInfo.session;
     }
 
-    public HashMap<String, String> buildPostParams(String action) {
-        HashMap<String, String> params = new HashMap<>();
+    public HashMap<String, Object> buildPostParams(String action) {
+        HashMap<String, Object> params = new HashMap<>();
         switch (action) {
             case "login":
                 params.put("action", action);
@@ -176,7 +189,7 @@ public class BuAPI {
                 params.put("action", action);
                 params.put("username", mUsername);
                 params.put("session", getSession());
-                params.put("fid", mThreadsFid + "");
+                params.put("fid", mForumFid + "");
                 params.put("from", mThreadsFrom + "");
                 params.put("to", mThreadsTo + ""); // to=100, thread+number+error
                 break;
@@ -184,9 +197,15 @@ public class BuAPI {
                 params.put("action", action);
                 params.put("username", mUsername);
                 params.put("session", getSession());
-                params.put("tid", mPostsTid + "");
+                params.put("tid", mThreadTid + "");
                 params.put("from", mPostsFrom + "");
                 params.put("to", mPostsTo + ""); // to=100, thread+number+error
+                break;
+            case "newthread":
+                params.put("action", action);
+                params.put("username", mUsername);
+                params.put("session", getSession());
+                params.put("fid", mForumFid + "");
                 break;
             case "latest":
                 params.put("username", mUsername);
@@ -218,13 +237,20 @@ public class BuAPI {
                         } else {
                             switch (retryFlag) {
                                 case RETRY_GETTHREADS_FLAG:
-                                    getThreadsList(mThreadsFid, mThreadsFrom, mThreadsTo);
+                                    getThreadsList(mForumFid, mThreadsFrom, mThreadsTo);
                                     break;
                                 case RETRY_GETPOSTS_FLAG:
-                                    getThreadPosts(mPostsTid, mPostsFrom, mPostsTo);
+                                    getThreadPosts(mThreadTid, mPostsFrom, mPostsTo);
                                     break;
                                 case RETRY_GETMEMBER_FLAG:
                                     getMemberInfo(mQueryUid);
+                                    break;
+                                case RETRY_NEWTHREAD_FLAG:
+                                    try {
+                                        postNewThread(mPostSubject, mPostMessage, 0);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                     break;
                             }
                         }
@@ -342,7 +368,7 @@ public class BuAPI {
      * @param to   帖子结束编号 to-from <=20
      */
     public void getThreadsList(final int fid, final int from, final int to) {
-        mThreadsFid = fid;
+        mForumFid = fid;
         mThreadsFrom = from;
         mThreadsTo = to;
         final Gson gson = new Gson();
@@ -492,7 +518,7 @@ public class BuAPI {
      * @param to   帖子结束编号 to-from <=20
      */
     public void getThreadPosts(final int tid, final int from, final int to) {
-        mPostsTid = tid;
+        mThreadTid = tid;
         mPostsFrom = from;
         mPostsTo = to;
         final Gson gson = new Gson();
@@ -559,6 +585,106 @@ public class BuAPI {
         mRequestQueue.add(postsRequest);
     }
 
+    /**
+     * 发表新帖
+     *
+     * @param subject    标题
+     * @param message    内容
+     * @param attachment 有无附件  1，0
+     * @throws IOException
+     */
+    public void postNewThread(String subject, String message, int attachment) throws IOException {
+        mPostSubject = subject;
+        mPostMessage = message;
+        Map<String, Object> data = buildPostParams("newthread");
+        data.put("subject", subject);
+        data.put("message", message);
+        data.put("attachment", 1);
+        JSONObject jsonObject = new JSONObject(data);
+
+        String url = NEWTHREAD_URL;
+
+        final String twoHyphens = "--";
+        final String lineEnd = "\r\n";
+        final String boundary = "----BitunionAndroidKit";
+        String mimeType = "multipart/form-data;boundary=" + boundary;
+        HashMap<String, String> headers = new HashMap<String, String>() {
+            {
+                put("Connection", "keep-alive");
+                put("Charset", "UTF-8");
+                put("Content-Type", "multipart/form-data; boundary=" + boundary);
+            }
+        };
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+
+        dos.writeBytes(twoHyphens + boundary + lineEnd);
+        dos.writeBytes("Content-Disposition: form-data; name=\"json\"" + lineEnd);
+//        dos.writeBytes("Content-Type: multipart/form-data; charset=UTF-8" + lineEnd);
+//        dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\"; filename=\""
+//                + fileName + "\"" + lineEnd);
+        dos.writeBytes(lineEnd);
+        dos.writeBytes(jsonObject.toString() + lineEnd);
+        dos.writeBytes("--" + boundary + "--" + lineEnd);
+        byte[] multipartBody = bos.toByteArray();
+//        ByteArrayInputStream fileInputStream = new ByteArrayInputStream(fileData);
+//        int bytesAvailable = fileInputStream.available();
+//
+//        int maxBufferSize = 1024 * 1024;
+//        int bufferSize = Math.min(bytesAvailable, maxBufferSize);
+//        byte[] buffer = new byte[bufferSize];
+//
+//        // read file and write it into form...
+//        int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+//
+//        while (bytesRead > 0) {
+//            dos.write(buffer, 0, bufferSize);
+//            bytesAvailable = fileInputStream.available();
+//            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+//            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+//        }
+
+        MultipartRequest multipartRequest = new MultipartRequest(url, headers, mimeType, multipartBody, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                if (response.statusCode == 200) {
+                    String jsonstr = new String(response.data, StandardCharsets.UTF_8).trim();
+                    try {
+                        JSONObject obj = new JSONObject(jsonstr);
+                        if (obj.getString("result").equals("success")) {
+//                            Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
+                            if (mOnPostNewThreadResponseListener != null)
+                                mOnPostNewThreadResponseListener.handlePostNewThreadResponse(Result.SUCCESS, obj.getString("tid"));
+                        } else {
+                            if (mRetryCount < 1) {
+//                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
+                                login(mUsername, mPassword, RETRY_NEWTHREAD_FLAG);
+                                mRetryCount++;
+                            } else {
+                                //重试一次之后仍然返回IP LOGGED，不再重试
+//                                mPostsResult = Result.IP_LOGGED;
+                                if (mOnPostNewThreadResponseListener != null)
+                                    mOnPostNewThreadResponseListener.handlePostNewThreadResponse(Result.FAILURE, null);
+                                mRetryCount = 0;
+                            }
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (mOnPostNewThreadResponseListener != null)
+                    mOnPostNewThreadResponseListener.handlePostNewThreadErrorResponse(error);
+            }
+        });
+        mRequestQueue.add(multipartRequest);
+    }
+
     public void setOnLoginResponseListener(OnLoginResponseListener lrl) {
         mOnLoginResponseListener = lrl;
     }
@@ -577,6 +703,10 @@ public class BuAPI {
 
     public void setOnPostsResponseListener(OnPostsResponseListener prl) {
         mOnPostsResponseListener = prl;
+    }
+
+    public void setOnPostNewThreadResponseListener(OnPostNewThreadResponseListener pntrl) {
+        mOnPostNewThreadResponseListener = pntrl;
     }
 
     public enum Result {
@@ -623,6 +753,12 @@ public class BuAPI {
         void handlePostsGetterResponse(Result result, ArrayList<BuPost> postsList);
 
         void handlePostsGetterErrorResponse(VolleyError error);
+    }
+
+    public interface OnPostNewThreadResponseListener {
+        void handlePostNewThreadResponse(Result result, String tid);
+
+        void handlePostNewThreadErrorResponse(VolleyError error);
     }
 
     public class LoginInfo {

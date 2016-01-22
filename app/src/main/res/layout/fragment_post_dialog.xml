@@ -1,0 +1,32 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    tools:context=".fragment.PostDialogFragment">
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/editText_postThreadTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/input_thread_title"
+        android:imeActionId="@+id/login"
+        android:imeActionLabel="@string/action_sign_in_short"
+        android:imeOptions="actionUnspecified"
+        android:maxLines="1"
+        android:singleLine="true"
+        app:met_clearButton="true"
+        app:met_primaryColor="?attr/colorAccent" />
+
+    <EditText
+        android:id="@+id/editText_postThreadMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editText_postThreadTitle"
+        android:ems="10"
+        android:hint="@string/input_thread_message"
+        android:inputType="textMultiLine"
+        android:minLines="6" />
+
+</RelativeLayout>

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="app.vleon.bitunion.ForumThreadsFragment">
+    tools:context=".fragment.ForumThreadsFragment">
 
     <!--<ProgressBar-->
     <!--android:id="@+id/request_forum_threads_progress"-->
@@ -26,6 +26,7 @@
         android:layout_gravity="right|bottom"
         android:layout_marginBottom="10dp"
         android:layout_marginEnd="10dp"
+        app:elevation="3dp"
         app:icon="@drawable/ic_create_white_18dp"
         app:urv_fab_alphaNormal="0.93"
         app:urv_fab_alphaPressed="0.93"

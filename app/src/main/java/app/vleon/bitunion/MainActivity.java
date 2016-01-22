@@ -33,6 +33,8 @@ import java.util.Map;
 
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuMember;
+import app.vleon.bitunion.fragment.ForumThreadsFragment;
+import app.vleon.bitunion.fragment.LatestThreadsFragment;
 import app.vleon.bitunion.util.Utils;
 
 public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInfoResponseListener,
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
     AccountHeader mHeaderResult;
     Map<String, List<Map<String, String>>> mForumsList = null;
     SparseBooleanArray openStatus = null;
+    private int mForumId = 0;
 
 
     private void removeDrawerForumItems(int identifier) {
@@ -190,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
                                                 addDrawerForumItems(curPos, identifier);
                                             }
                                             openStatus.put(identifier, !opened);
+                                            mForumId = identifier;
                                             return true;
                                         case 0:
                                             showLatest();
@@ -203,7 +207,6 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
                                 return false;
                             }
                         }
-
                 )
                 .withSavedInstance(savedInstanceState)
                 .withShowDrawerOnFirstLaunch(true)
@@ -212,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 //        mDrawerResult.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
         if (savedInstanceState == null) {
-//            mDrawerResult.setSelection(mForumId);
+            mDrawerResult.setSelection(mForumId);
         }
         app.getAPI().setOnMemberInfoResponseListener(this);
         app.getAPI().getMyInfo();

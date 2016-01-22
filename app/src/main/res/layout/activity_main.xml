@@ -20,7 +20,7 @@
 
     <fragment
         android:id="@+id/threads_fragment"
-        android:name="app.vleon.bitunion.LatestThreadsFragment"
+        android:name="app.vleon.bitunion.fragment.LatestThreadsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize" />

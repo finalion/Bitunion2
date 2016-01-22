@@ -1,4 +1,4 @@
-package app.vleon.bitunion;
+package app.vleon.bitunion.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -22,6 +22,10 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
 
 import java.util.ArrayList;
 
+import app.vleon.bitunion.LatestThreadsAdapter;
+import app.vleon.bitunion.MyApplication;
+import app.vleon.bitunion.R;
+import app.vleon.bitunion.ThreadPostsActivity;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuLatestThread;
 
