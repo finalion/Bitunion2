@@ -83,7 +83,7 @@ public class BuPost {
     }
 
     public String prettify(String message) {
-        return removeBlankLines(message);
+        return removeUserLink(removeBlankLines(message));
     }
 
     // 去除段前段后的换行符
@@ -97,6 +97,16 @@ public class BuPost {
         }
         while (message.endsWith("<br />")) {
             message = message.substring(0, message.length() - 6).trim();
+        }
+        return message;
+    }
+
+    // 去除@username的超链接
+    private String removeUserLink(String message) {
+        Pattern p = Pattern.compile("<font color=\"Blue\">@<a href=\"/profile-username-.*?html\">(.*?)</a></font>");
+        Matcher m = p.matcher(message);
+        while (m.find()) {
+            message = message.replace(m.group(0), String.format("<font color=\"Blue\">@%s</font>", m.group(1)));
         }
         return message;
     }
