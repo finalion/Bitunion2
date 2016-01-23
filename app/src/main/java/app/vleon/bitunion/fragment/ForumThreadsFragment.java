@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import app.vleon.bitunion.MyApplication;
 import app.vleon.bitunion.R;
 import app.vleon.bitunion.ThreadPostsActivity;
-import app.vleon.bitunion.ThreadsAdapter;
+import app.vleon.bitunion.adapter.ThreadsAdapter;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuThread;
 

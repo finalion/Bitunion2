@@ -18,25 +18,26 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
+import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton;
 
 import java.util.ArrayList;
 
+import app.vleon.bitunion.adapter.ThreadPostsAdapter;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.fragment.PostDialogFragment;
 import app.vleon.bitunion.ui.DividerItemDecoration;
 
 public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener {
 
-    public static RequestQueue mRequestQueue;
-    public static BuAPI.LoginInfo mLoginInfo;
     MyApplication app;
     ArrayList<BuPost> mPostsList;
     int mFrom = 0;
     int mTo = 20;
     int mTid = 0;
+    JellyBeanFloatingActionButton mFloatingButton;
     private UltimateRecyclerView mPostsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private ProgressBar mProgressBar;
@@ -63,6 +64,16 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
         mPostsRecyclerView.setLayoutManager(mLayoutManager);
+
+        mFloatingButton = (JellyBeanFloatingActionButton) findViewById(R.id.custom_urv_add_floating_button_reply);
+        mFloatingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PostDialogFragment pdf = new PostDialogFragment();
+                pdf.setLaunchType(1); // hide subject textview
+                pdf.show(getSupportFragmentManager(), "reply_dialog");
+            }
+        });
 
         // specify an adapter (see also next example)
         mAdapter = new ThreadPostsAdapter(this, mPostsList);

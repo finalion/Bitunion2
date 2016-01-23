@@ -14,11 +14,11 @@ import java.util.Map;
  * Created by vleon on 2016/1/22.
  */
 public class MultipartRequest extends Request<NetworkResponse> {
-    private final Response.Listener<NetworkResponse> mListener;
-    private final Response.ErrorListener mErrorListener;
-    private final Map<String, String> mHeaders;
-    private final String mMimeType;
-    private final byte[] mMultipartBody;
+    public Response.Listener<NetworkResponse> mListener;
+    public Response.ErrorListener mErrorListener;
+    public Map<String, String> mHeaders;
+    public String mMimeType;
+    public byte[] mMultipartBody;
 
     public MultipartRequest(String url, Map<String, String> headers, String mimeType, byte[] multipartBody,
                             Response.Listener<NetworkResponse> listener, Response.ErrorListener errorListener) {

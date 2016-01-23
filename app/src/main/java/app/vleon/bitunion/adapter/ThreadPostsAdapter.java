@@ -1,4 +1,4 @@
-package app.vleon.bitunion;
+package app.vleon.bitunion.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
+import app.vleon.bitunion.PersonalInfoActivity;
+import app.vleon.bitunion.R;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
 import app.vleon.bitunion.util.GlideImageGetter;

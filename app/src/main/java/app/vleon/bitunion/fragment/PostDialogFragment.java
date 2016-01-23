@@ -20,6 +20,7 @@ public class PostDialogFragment extends DialogFragment {
     MyApplication app;
     EditText mSubjectEditText = null;
     EditText mMessageEditText = null;
+    private int mLaunchType = 0;
 
     @NonNull
     @Override
@@ -28,6 +29,10 @@ public class PostDialogFragment extends DialogFragment {
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_post_dialog, null);
         mSubjectEditText = (EditText) view.findViewById(R.id.editText_postThreadTitle);
         mMessageEditText = (EditText) view.findViewById(R.id.editText_postThreadMessage);
+        if (mLaunchType == 1)
+            mSubjectEditText.setVisibility(View.GONE);
+        else
+            mSubjectEditText.setVisibility(View.VISIBLE);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(view)
                 .setPositiveButton(R.string.post, new DialogInterface.OnClickListener() {
@@ -63,5 +68,9 @@ public class PostDialogFragment extends DialogFragment {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void setLaunchType(int type) {
+        mLaunchType = type;
     }
 }

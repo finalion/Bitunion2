@@ -1,4 +1,4 @@
-package app.vleon.bitunion;
+package app.vleon.bitunion.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -14,15 +14,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
-import app.vleon.bitunion.buapi.BuAPI;
-import app.vleon.bitunion.buapi.BuThread;
+import app.vleon.bitunion.R;
+import app.vleon.bitunion.buapi.BuLatestThread;
 
-public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolder> {
-    private ArrayList<BuThread> mDataset;
+/**
+ * Created by vleon on 2016/1/20.
+ */
+public class LatestThreadsAdapter extends UltimateViewAdapter<LatestThreadsAdapter.ViewHolder> {
+    private ArrayList<BuLatestThread> mDataset;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public ThreadsAdapter(ArrayList<BuThread> dataset) {
+    public LatestThreadsAdapter(ArrayList<BuLatestThread> dataset) {
         mDataset = dataset;
     }
 
@@ -37,7 +40,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         // create a new view
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.thread_item, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.latest_thread_item, parent, false);
 
         // set the view's size, margins, paddings and layout parameters
 
@@ -46,7 +49,7 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
             @Override
             public void onClick(View v) {
                 if (mOnItemClickListener != null) {
-                    mOnItemClickListener.onItemClick(v, (BuThread) v.getTag());
+                    mOnItemClickListener.onItemClick(v, (BuLatestThread) v.getTag());
                 }
             }
         });
@@ -61,17 +64,18 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (position < getItemCount() && (customHeaderView != null ? position <= mDataset.size() : position < mDataset.size()) && (customHeaderView != null ? position > 0 : true)) {
-            BuThread thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
+            BuLatestThread thread = (mDataset.get(customHeaderView != null ? position - 1 : position));
             try {
-                holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(thread.author, "UTF-8")));
-                holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(thread.subject, "UTF-8")));
+                holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(thread.getAuthor(), "UTF-8")));
+                holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(thread.getPname(), "UTF-8")));
+                holder.mForumTextView.setText(Html.fromHtml(URLDecoder.decode(thread.getFname(), "UTF-8")));
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-                holder.mSubjectTextView.setText("encode error");
+                holder.mAuthorTextView.setText(R.string.encode_error);
+                holder.mSubjectTextView.setText(R.string.encode_error);
+                holder.mForumTextView.setText(R.string.encode_error);
             }
-            holder.mTimeTextView.setText(BuAPI.formatTime(thread.lastpost));
-            holder.mCommentsCountTextView.setText(thread.replies);
-            holder.mViewsCountTextView.setText(thread.views);
+            holder.mTidTotalCounts.setText(thread.getTid_sum());
             holder.itemView.setTag(thread); //将当前帖子设置为itemview的tag，方便点击事件回调
         }
     }
@@ -96,13 +100,13 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
         return 0;
     }
 
-    public void refresh(ArrayList<BuThread> dataset) {
+    public void refresh(ArrayList<BuLatestThread> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
 
     public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, BuThread data);
+        void onItemClick(View view, BuLatestThread data);
     }
 
     // Provide a reference to the views for each data item
@@ -112,18 +116,16 @@ public class ThreadsAdapter extends UltimateViewAdapter<ThreadsAdapter.ViewHolde
         // each data item is just a string in this case
         public TextView mAuthorTextView;
         public TextView mSubjectTextView;
-        public TextView mTimeTextView;
-        public TextView mViewsCountTextView;
-        public TextView mCommentsCountTextView;
+        public TextView mForumTextView;
+        public TextView mTidTotalCounts;
 
         public ViewHolder(View v, boolean isItem) {
             super(v);
             if (isItem) {
                 mAuthorTextView = (TextView) v.findViewById(R.id.author_textview);
                 mSubjectTextView = (TextView) v.findViewById(R.id.subject_textview);
-                mTimeTextView = (TextView) v.findViewById(R.id.time_textview);
-                mViewsCountTextView = (TextView) v.findViewById(R.id.views_count_textview);
-                mCommentsCountTextView = (TextView) v.findViewById(R.id.comments_count_textview);
+                mForumTextView = (TextView) v.findViewById(R.id.forum_in_textview);
+                mTidTotalCounts = (TextView) v.findViewById(R.id.counts_textview);
             }
         }
     }

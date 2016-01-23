@@ -26,6 +26,22 @@
         android:layout_below="@id/my_toolbar2"
         android:scrollbars="vertical" />
 
+    <com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton
+        android:id="@+id/custom_urv_add_floating_button_reply"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/posts_recycler_view"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="10dp"
+        app:elevation="3dp"
+        app:icon="@drawable/ic_create_white_18dp"
+        app:urv_fab_alphaNormal="1"
+        app:urv_fab_alphaPressed="1"
+        app:urv_fab_colorNormal="@color/colorPrimary"
+        app:urv_fab_colorPressed="@color/colorPrimaryDark" />
+
     <ProgressBar
         android:id="@+id/request_posts_progress"
         style="?android:attr/progressBarStyle"
