@@ -15,9 +15,8 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ public class BuAPI {
     public static final int OUTNET = 1;
     public static final int BITNET = 0;
     private static final int RETRY_NEWTHREAD_FLAG = 5;
+    private static final int RETRY_NEWREPLY_FLAG = 6;
     // {"result":"fail","msg":"IP+logged"}
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
@@ -42,8 +42,7 @@ public class BuAPI {
     public static String URL_EMOTICON_IMAGE_PREFIX;
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
-    final boolean enableRefreshSession = true;
-    final int maxRefreshCnt = 2; // 最多重试两次
+    final int maxRefreshCnt = 1; // 最多重试次数
     private final int RETRY_GETTHREADS_FLAG = 1;
     private final int RETRY_GETPOSTS_FLAG = 2;
     private final int RETRY_GETMEMBER_FLAG = 3;
@@ -61,15 +60,16 @@ public class BuAPI {
     String mQueryUid;
     Context mContext;
     int mNetType;
-    private String mPostSubject;
-    private String mPostMessage;
-    private String mReplyMessage;
+    private String mPostThreadSubject;
+    private String mPostThreadMessage;
+    private String mPostReplyMessage;
     private RequestQueue mRequestQueue;
     private OnLoginResponseListener mOnLoginResponseListener = null;
     private OnThreadsResponseListener mOnThreadsResponseListener = null;
     private OnPostsResponseListener mOnPostsResponseListener = null;
     private OnMemberInfoResponseListener mOnMemberInfoResponseListener = null;
     private OnPostNewThreadResponseListener mOnPostNewThreadResponseListener = null;
+    private OnPostNewReplyResponseListener mOnPostNewReplyResponseListener = null;
     private Result mThreadsResult = Result.NULL;
     private Result mPostsResult = Result.NULL;
     private Result mMemberResult = Result.NULL;
@@ -97,7 +97,7 @@ public class BuAPI {
     public static String getAvailableUrl(String rawUrl) {
         String url;
         if (rawUrl.startsWith("http://")) {
-            url = rawUrl.replace("http://www.bitunion.org/", ROOTURL);  //// TODO: 2015/11/4
+            url = rawUrl.replace("http://www.bitunion.org/", ROOTURL);
             url = url.replace("http://bitunion.org/", ROOTURL);
         } else if (rawUrl.startsWith(".../")) {
             url = rawUrl.replace("../", ROOTURL);
@@ -254,7 +254,13 @@ public class BuAPI {
                                     break;
                                 case RETRY_NEWTHREAD_FLAG:
                                     try {
-                                        postNewThread(mPostSubject, mPostMessage, 0);
+                                        postNewThread(mPostThreadSubject, mPostThreadMessage, 1);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                case RETRY_NEWREPLY_FLAG:
+                                    try {
+                                        postReply(mPostReplyMessage, 1);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
@@ -332,7 +338,7 @@ public class BuAPI {
                         switch (msg) {
                             case "IP+logged":
                                 // session失效时，返回该msg，需要重新获取session
-                                if (mRetryCount < 1) {
+                                if (mRetryCount < maxRefreshCnt) {
 //                                    Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                     login(mUsername, mPassword, RETRY_GETMEMBER_FLAG);
                                     mRetryCount++;
@@ -408,7 +414,7 @@ public class BuAPI {
                                         break;
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
-                                        if (mRetryCount < 1) {
+                                        if (mRetryCount < maxRefreshCnt) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETTHREADS_FLAG);
                                             mRetryCount++;
@@ -475,7 +481,7 @@ public class BuAPI {
                                         break;
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
-                                        if (mRetryCount < 1) {
+                                        if (mRetryCount < maxRefreshCnt) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETLATEST_FLAG);
                                             mRetryCount++;
@@ -561,7 +567,7 @@ public class BuAPI {
                                         break;
                                     case "IP+logged":
                                         // session失效时，返回该msg，需要重新获取session
-                                        if (mRetryCount < 1) {
+                                        if (mRetryCount < maxRefreshCnt) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                             login(mUsername, mPassword, RETRY_GETPOSTS_FLAG);
                                             mRetryCount++;
@@ -599,13 +605,16 @@ public class BuAPI {
      * @param attachment 有无附件 1，0
      */
     public void postReply(String message, int attachment) throws IOException {
-        mReplyMessage = message;
+        mPostReplyMessage = message;
         Map<String, Object> data = buildPostParams("newreply");
-        data.put("message", message);
-        data.put("attachment", 1);
-        JSONObject jsonObject = new JSONObject(data);
+        data.put("message", URLEncoder.encode(message, "utf-8"));
+        data.put("attachment", attachment);
 
-        BuMultipartRequest multipartRequest = new BuMultipartRequest(NEWREPLY_URL, null, null, null, new Response.Listener<NetworkResponse>() {
+        HashMap<String, String> formData = new HashMap<>();
+        formData.put("json", new JSONObject(data).toString());
+        final String boundary = "----Bitunion2070115910904027";
+
+        MultipartRequest multipartRequest = new MultipartRequest(NEWREPLY_URL, null, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 if (response.statusCode == 200) {
@@ -614,18 +623,18 @@ public class BuAPI {
                         JSONObject obj = new JSONObject(jsonstr);
                         if (obj.getString("result").equals("success")) {
 //                            Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
-                            if (mOnPostNewThreadResponseListener != null)
-                                mOnPostNewThreadResponseListener.handlePostNewThreadResponse(Result.SUCCESS, obj.getString("tid"));
+                            if (mOnPostNewReplyResponseListener != null)
+                                mOnPostNewReplyResponseListener.handlePostNewReplyResponse(Result.SUCCESS, obj.getString("tid"));
                         } else {
-                            if (mRetryCount < 1) {
+                            if (mRetryCount < maxRefreshCnt) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
-                                login(mUsername, mPassword, RETRY_NEWTHREAD_FLAG);
+                                login(mUsername, mPassword, RETRY_NEWREPLY_FLAG);
                                 mRetryCount++;
                             } else {
                                 //重试一次之后仍然返回IP LOGGED，不再重试
 //                                mPostsResult = Result.IP_LOGGED;
-                                if (mOnPostNewThreadResponseListener != null)
-                                    mOnPostNewThreadResponseListener.handlePostNewThreadResponse(Result.FAILURE, null);
+                                if (mOnPostNewReplyResponseListener != null)
+                                    mOnPostNewReplyResponseListener.handlePostNewReplyResponse(Result.FAILURE, null);
                                 mRetryCount = 0;
                             }
                         }
@@ -638,11 +647,11 @@ public class BuAPI {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                if (mOnPostNewThreadResponseListener != null)
-                    mOnPostNewThreadResponseListener.handlePostNewThreadErrorResponse(error);
+                if (mOnPostNewReplyResponseListener != null)
+                    mOnPostNewReplyResponseListener.handlePostNewReplyErrorResponse(error);
             }
         });
-        multipartRequest.init(jsonObject);
+        multipartRequest.buildBody(formData, boundary);
         mRequestQueue.add(multipartRequest);
     }
 
@@ -655,20 +664,17 @@ public class BuAPI {
      * @throws IOException
      */
     public void postNewThread(String subject, String message, int attachment) throws IOException {
-        mPostSubject = subject;
-        mPostMessage = message;
+        mPostThreadSubject = subject;
+        mPostThreadMessage = message;
         Map<String, Object> data = buildPostParams("newthread");
-        data.put("subject", subject);
-        data.put("message", message);
-        data.put("attachment", 1);
-        JSONObject jsonObject = new JSONObject(data);
+        data.put("subject", URLEncoder.encode(subject, "utf-8"));
+        data.put("message", URLEncoder.encode(message, "utf-8"));
+        data.put("attachment", attachment);
 
-        String url = NEWTHREAD_URL;
+        HashMap<String, String> formData = new HashMap<>();
+        formData.put("json", new JSONObject(data).toString());
 
-        final String twoHyphens = "--";
-        final String lineEnd = "\r\n";
-        final String boundary = "----BitunionAndroidKit";
-        String mimeType = "multipart/form-data;boundary=" + boundary;
+        final String boundary = "----Bitunion2070115910904027";
         HashMap<String, String> headers = new HashMap<String, String>() {
             {
                 put("Connection", "keep-alive");
@@ -677,18 +683,18 @@ public class BuAPI {
             }
         };
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-
-        dos.writeBytes(twoHyphens + boundary + lineEnd);
-        dos.writeBytes("Content-Disposition: form-data; name=\"json\"" + lineEnd);
-//        dos.writeBytes("Content-Type: multipart/form-data; charset=UTF-8" + lineEnd);
-//        dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\"; filename=\""
-//                + fileName + "\"" + lineEnd);
-        dos.writeBytes(lineEnd);
-        dos.writeBytes(jsonObject.toString() + lineEnd);
-        dos.writeBytes("--" + boundary + "--" + lineEnd);
-        byte[] multipartBody = bos.toByteArray();
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        DataOutputStream dos = new DataOutputStream(bos);
+//
+//        dos.writeBytes(twoHyphens + boundary + lineEnd);
+//        dos.writeBytes("Content-Disposition: form-data; name=\"json\"" + lineEnd);
+////        dos.writeBytes("Content-Type: multipart/form-data; charset=UTF-8" + lineEnd);
+////        dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\"; filename=\""
+////                + fileName + "\"" + lineEnd);
+//        dos.writeBytes(lineEnd);
+//        dos.writeBytes(jsonObject.toString() + lineEnd);
+//        dos.writeBytes("--" + boundary + "--" + lineEnd);
+//        byte[] multipartBody = bos.toByteArray();
 //        ByteArrayInputStream fileInputStream = new ByteArrayInputStream(fileData);
 //        int bytesAvailable = fileInputStream.available();
 //
@@ -706,7 +712,7 @@ public class BuAPI {
 //            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
 //        }
 
-        MultipartRequest multipartRequest = new MultipartRequest(url, headers, mimeType, multipartBody, new Response.Listener<NetworkResponse>() {
+        MultipartRequest multipartRequest = new MultipartRequest(NEWTHREAD_URL, headers, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 if (response.statusCode == 200) {
@@ -718,7 +724,7 @@ public class BuAPI {
                             if (mOnPostNewThreadResponseListener != null)
                                 mOnPostNewThreadResponseListener.handlePostNewThreadResponse(Result.SUCCESS, obj.getString("tid"));
                         } else {
-                            if (mRetryCount < 1) {
+                            if (mRetryCount < maxRefreshCnt) {
 //                                            Toast.makeText(mContext, "retry", Toast.LENGTH_SHORT).show();
                                 login(mUsername, mPassword, RETRY_NEWTHREAD_FLAG);
                                 mRetryCount++;
@@ -743,6 +749,8 @@ public class BuAPI {
                     mOnPostNewThreadResponseListener.handlePostNewThreadErrorResponse(error);
             }
         });
+
+        multipartRequest.buildBody(formData, boundary);
         mRequestQueue.add(multipartRequest);
     }
 
@@ -822,43 +830,10 @@ public class BuAPI {
         void handlePostNewThreadErrorResponse(VolleyError error);
     }
 
-    public class BuMultipartRequest extends MultipartRequest {
+    public interface OnPostNewReplyResponseListener {
+        void handlePostNewReplyResponse(Result result, String pid);
 
-
-        public BuMultipartRequest(String url, Map<String, String> headers, String mimeType, byte[] multipartBody, Response.Listener<NetworkResponse> listener, Response.ErrorListener errorListener) {
-            super(url, headers, mimeType, multipartBody, listener, errorListener);
-        }
-
-        public void init(JSONObject jsonObject) {
-            final String twoHyphens = "--";
-            final String lineEnd = "\r\n";
-            final String boundary = "----BitunionAndroidKit";
-            String mimeType = "multipart/form-data;boundary=" + boundary;
-            HashMap<String, String> headers = new HashMap<String, String>() {
-                {
-                    put("Connection", "keep-alive");
-                    put("Charset", "UTF-8");
-                    put("Content-Type", "multipart/form-data; boundary=" + boundary);
-                }
-            };
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            DataOutputStream dos = new DataOutputStream(bos);
-
-            try {
-                dos.writeBytes(twoHyphens + boundary + lineEnd);
-                dos.writeBytes("Content-Disposition: form-data; name=\"json\"" + lineEnd);
-                dos.writeBytes(lineEnd);
-                dos.writeBytes(jsonObject.toString() + lineEnd);
-                dos.writeBytes("--" + boundary + "--" + lineEnd);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            byte[] multipartBody = bos.toByteArray();
-            this.mHeaders = headers;
-            this.mMimeType = mimeType;
-            this.mMultipartBody = multipartBody;
-        }
+        void handlePostNewReplyErrorResponse(VolleyError error);
     }
 
     public class LoginInfo {
