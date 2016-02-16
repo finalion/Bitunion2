@@ -120,13 +120,6 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onLatestThreadsFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

@@ -25,6 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/editText_postThreadTitle"
         android:ems="10"
+        android:gravity="top"
         android:hint="@string/input_thread_message"
         android:inputType="textMultiLine"
         android:minLines="6" />

@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,7 +21,6 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
-import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton;
 
 import java.util.ArrayList;
 
@@ -30,14 +30,14 @@ import app.vleon.bitunion.buapi.BuPost;
 import app.vleon.bitunion.fragment.PostDialogFragment;
 import app.vleon.bitunion.ui.DividerItemDecoration;
 
-public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener {
+public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener, BuAPI.OnPostNewReplyResponseListener {
 
     MyApplication app;
     ArrayList<BuPost> mPostsList;
     int mFrom = 0;
     int mTo = 20;
     int mTid = 0;
-    JellyBeanFloatingActionButton mFloatingButton;
+    FloatingActionButton mFloatingButton;
     private UltimateRecyclerView mPostsRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private ProgressBar mProgressBar;
@@ -65,7 +65,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mLayoutManager = new LinearLayoutManager(this);
         mPostsRecyclerView.setLayoutManager(mLayoutManager);
 
-        mFloatingButton = (JellyBeanFloatingActionButton) findViewById(R.id.custom_urv_add_floating_button_reply);
+        mFloatingButton = (FloatingActionButton) findViewById(R.id.custom_urv_add_floating_button_reply);
         mFloatingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,6 +111,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         });
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         app.getAPI().setOnPostsResponseListener(this);
+        app.getAPI().setOnPostNewReplyResponseListener(this);
     }
 
     @Override
@@ -167,6 +168,19 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
     public void handlePostsGetterErrorResponse(VolleyError error) {
         Toast.makeText(ThreadPostsActivity.this, "获取异常", Toast.LENGTH_SHORT).show();
         showProgress(false);
+    }
+
+    @Override
+    public void handlePostNewReplyResponse(BuAPI.Result result, String pid) {
+        clearFlag = true;
+        mFrom = 0;
+        mTo = 20;
+        app.getAPI().getThreadPosts(mTid, mFrom, mTo);
+    }
+
+    @Override
+    public void handlePostNewReplyErrorResponse(VolleyError error) {
+
     }
 
     /**

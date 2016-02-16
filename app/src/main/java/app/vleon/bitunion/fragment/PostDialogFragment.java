@@ -38,7 +38,10 @@ public class PostDialogFragment extends DialogFragment {
                 .setPositiveButton(R.string.post, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        attemptPost();
+                        if (mLaunchType == 1)
+                            attemptPostReply();
+                        else
+                            attemptPostThread();
                     }
                 })
                 .setNegativeButton(R.string.cancle, new DialogInterface.OnClickListener() {
@@ -50,7 +53,7 @@ public class PostDialogFragment extends DialogFragment {
         return builder.create();
     }
 
-    public void attemptPost() {
+    public void attemptPostThread() {
         mSubjectEditText.setError(null);
         mMessageEditText.setError(null);
         String subject = mSubjectEditText.getText().toString();
@@ -64,6 +67,21 @@ public class PostDialogFragment extends DialogFragment {
         } else {
             try {
                 app.getAPI().postNewThread(subject, message, 0);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void attemptPostReply() {
+        mMessageEditText.setError(null);
+        String message = mMessageEditText.getText().toString();
+        if (TextUtils.isEmpty(message)) {
+            mMessageEditText.requestFocus();
+            mMessageEditText.setError("请输入内容");
+        } else {
+            try {
+                app.getAPI().postReply(message, 0);
             } catch (IOException e) {
                 e.printStackTrace();
             }

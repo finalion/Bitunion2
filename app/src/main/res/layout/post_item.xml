@@ -2,52 +2,63 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingBottom="8dp"
-    android:paddingLeft="11dp"
-    android:paddingRight="12dp"
-    android:paddingTop="8dp">
+    android:orientation="vertical"
+    android:paddingBottom="12dp"
+    android:paddingEnd="12dp"
+    android:paddingStart="12dp"
+    android:paddingTop="12dp">
 
-    <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/avatar_imageview"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/noavatar"
-        app:civ_border_color="#FFFFFFFF"
-        app:civ_border_width="0dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:orientation="vertical">
+        android:layout_marginStart="5dp"
+        android:orientation="horizontal">
 
-        <RelativeLayout
+        <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/avatar_imageview"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/noavatar"
+            app:civ_border_color="#FFFFFFFF"
+            app:civ_border_width="0dp" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="10dp"
+            android:gravity="start"
+            android:orientation="horizontal"
             android:padding="1dp">
 
             <TextView
                 android:id="@+id/author_textview"
-                android:layout_width="120dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true" />
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/time_textview"
-                android:layout_width="130dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true" />
+                android:layout_weight="1"
+                android:gravity="end" />
 
-        </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
 
-        <TextView
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+
+    <TextView
             android:id="@+id/subject_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:textColor="@color/abc_primary_text_material_light"
             android:textSize="16sp"
             android:textStyle="bold" />

@@ -38,7 +38,7 @@ public class BuAPI {
     // {"result":"fail","msg":"IP+logged"}
     public static String ROOTURL, BASEURL;
     public static String LOGGING_URL, FORUM_URL, THREAD_URL,
-            POST_URL, PROFILE_URL, NEWREPLY_URL, NEWTHREAD_URL, LATEST_URL;
+            POST_URL, PROFILE_URL, NEWPOST_URL, LATEST_URL;
     public static String URL_EMOTICON_IMAGE_PREFIX;
     // 如果返回Result为FAIL，msg字段一般为“IP+logged”，说明session失效
     // autoRefreshSession开关决定是否重新刷新session
@@ -89,8 +89,7 @@ public class BuAPI {
         THREAD_URL = BASEURL + "bu_thread.php";
         PROFILE_URL = BASEURL + "bu_profile.php";
         POST_URL = BASEURL + "bu_post.php";
-        NEWREPLY_URL = BASEURL + "bu_newreply.php";
-        NEWTHREAD_URL = BASEURL + "bu_newpost.php";
+        NEWPOST_URL = BASEURL + "bu_newpost.php";
         LATEST_URL = BASEURL + "bu_home.php";
     }
 
@@ -614,7 +613,7 @@ public class BuAPI {
         formData.put("json", new JSONObject(data).toString());
         final String boundary = "----Bitunion2070115910904027";
 
-        MultipartRequest multipartRequest = new MultipartRequest(NEWREPLY_URL, null, new Response.Listener<NetworkResponse>() {
+        MultipartRequest multipartRequest = new MultipartRequest(NEWPOST_URL, null, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 if (response.statusCode == 200) {
@@ -622,6 +621,7 @@ public class BuAPI {
                     try {
                         JSONObject obj = new JSONObject(jsonstr);
                         if (obj.getString("result").equals("success")) {
+                            // msg: exceed+failure
 //                            Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
                             if (mOnPostNewReplyResponseListener != null)
                                 mOnPostNewReplyResponseListener.handlePostNewReplyResponse(Result.SUCCESS, obj.getString("tid"));
@@ -712,7 +712,7 @@ public class BuAPI {
 //            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
 //        }
 
-        MultipartRequest multipartRequest = new MultipartRequest(NEWTHREAD_URL, headers, new Response.Listener<NetworkResponse>() {
+        MultipartRequest multipartRequest = new MultipartRequest(NEWPOST_URL, headers, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 if (response.statusCode == 200) {
@@ -776,6 +776,10 @@ public class BuAPI {
 
     public void setOnPostNewThreadResponseListener(OnPostNewThreadResponseListener pntrl) {
         mOnPostNewThreadResponseListener = pntrl;
+    }
+
+    public void setOnPostNewReplyResponseListener(OnPostNewReplyResponseListener pnrrl) {
+        mOnPostNewReplyResponseListener = pnrrl;
     }
 
     public enum Result {

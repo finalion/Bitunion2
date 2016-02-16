@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -22,7 +23,6 @@ import com.android.volley.VolleyError;
 import com.marshalchen.ultimaterecyclerview.ObservableScrollState;
 import com.marshalchen.ultimaterecyclerview.ObservableScrollViewCallbacks;
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
-import com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton;
 
 import java.util.ArrayList;
 
@@ -52,7 +52,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
     int mFrom = 0;
     int mTo = 20;
     ArrayList<BuThread> mThreadsList;
-    JellyBeanFloatingActionButton mFloatingButton;
+    FloatingActionButton mFloatingButton;
     private int mForumId;
     private String mForumName;
     private boolean clearFlag = false;
@@ -121,7 +121,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         mThreadsRecyclerView.setHasFixedSize(true);
 //        showProgress(true);
         //floating action button
-        mFloatingButton = (JellyBeanFloatingActionButton) view.findViewById(R.id.custom_urv_add_floating_button);
+        mFloatingButton = (FloatingActionButton) view.findViewById(R.id.custom_urv_add_floating_button);
         mFloatingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,6 +129,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                 pdf.show(getActivity().getSupportFragmentManager(), "post_dialog");
             }
         });
+
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         // use a linear layout manager
@@ -183,13 +184,6 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
             }
         });
         return view;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onForumThreadsFragmentInteraction(uri);
-        }
     }
 
     @Override
