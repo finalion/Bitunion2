@@ -116,6 +116,8 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
                 app.getAPI().getLatestThreads();
             }
         });
+        // 设置滚动条颜色变化
+        mLatestThreadsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccent);
 //        showProgress(true);
         return view;
     }

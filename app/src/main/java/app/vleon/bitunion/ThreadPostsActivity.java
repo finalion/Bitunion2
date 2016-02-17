@@ -109,6 +109,8 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
                 app.getAPI().getThreadPosts(mTid, mFrom, mTo);
             }
         });
+        // 设置滚动条颜色变化
+        mPostsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccent);
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
         app.getAPI().setOnPostsResponseListener(this);
         app.getAPI().setOnPostNewReplyResponseListener(this);

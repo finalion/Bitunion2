@@ -96,8 +96,9 @@ public class BuAPI {
     public static String getAvailableUrl(String rawUrl) {
         String url;
         if (rawUrl.startsWith("http://")) {
-            url = rawUrl.replace("http://www.bitunion.org/", ROOTURL);
-            url = url.replace("http://bitunion.org/", ROOTURL);
+//            url = rawUrl.replace("http://www.bitunion.org/", ROOTURL);
+//            url = url.replace("http://bitunion.org/", ROOTURL);
+            url = rawUrl.replaceFirst("^http://(.*?)/", ROOTURL);
         } else if (rawUrl.startsWith(".../")) {
             url = rawUrl.replace("../", ROOTURL);
         } else {

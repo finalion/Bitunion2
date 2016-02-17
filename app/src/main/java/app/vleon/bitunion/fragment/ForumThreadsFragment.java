@@ -162,7 +162,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
             }
         });
         // 设置滚动条颜色变化
-        mThreadsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccentLight, R.color.colorAccent);
+        mThreadsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccent);
         mThreadsRecyclerView.setScrollViewCallbacks(new ObservableScrollViewCallbacks() {
             @Override
             public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
