@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
+    android:descendantFocusability="blocksDescendants"
     android:focusable="true"
     android:orientation="vertical"
     android:paddingBottom="12dp"
@@ -70,7 +71,7 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <TextView
+        <app.vleon.bitunion.ui.TextViewFixTouchConsume
             android:id="@+id/quotes_textview"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -83,7 +84,7 @@
             android:textSize="15sp"
             android:visibility="gone" />
 
-        <TextView
+        <app.vleon.bitunion.ui.TextViewFixTouchConsume
             android:id="@+id/message_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

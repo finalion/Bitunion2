@@ -77,6 +77,12 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
         // specify an adapter (see also next example)
         mAdapter = new ThreadPostsAdapter(this, mPostsList);
+        mAdapter.setOnItemClickedListener(new ThreadPostsAdapter.OnRecyclerViewItemClickListener() {
+            @Override
+            public void onItemClick(View view, BuPost data) {
+                Toast.makeText(ThreadPostsActivity.this, "item click", Toast.LENGTH_SHORT).show();
+            }
+        });
         mPostsRecyclerView.setAdapter(mAdapter);
         mPostsRecyclerView.addItemDecoration(new DividerItemDecoration(this, null));
 

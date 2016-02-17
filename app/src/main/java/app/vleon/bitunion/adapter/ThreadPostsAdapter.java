@@ -23,6 +23,7 @@ import app.vleon.bitunion.PersonalInfoActivity;
 import app.vleon.bitunion.R;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.ui.TextViewFixTouchConsume;
 import app.vleon.bitunion.util.GlideImageGetter;
 import app.vleon.bitunion.util.HtmlTagHandler;
 import app.vleon.bitunion.util.Utils;
@@ -32,6 +33,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     private Context mContext;
 
     private OnRecyclerViewItemClickListener mOnItemClickListener = null;
+    private OnRecyclerViewItemLongClickListener mOnItemLongClickListener = null;
 
     public ThreadPostsAdapter(Context context, ArrayList<BuPost> dataset) {
         mDataset = dataset;
@@ -45,6 +47,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.post_item, parent, false);
         ViewHolder vh = new ViewHolder(v);
         v.setOnClickListener(this);
+//        v.setOnLongClickListener(this);
         return vh;
     }
 
@@ -86,10 +89,9 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     }
                 });
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
-
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
                 holder.mMessageTextView.setLinksClickable(true);
-                holder.mMessageTextView.setMovementMethod(LinkMovementMethod.getInstance());
+                holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());
                 holder.mMessageTextView.setText(Utils.getClickableHtml(postInfo.content, null,
 //                        new Utils.OnClickedClickableSpanListener() {
 //                            @Override
@@ -156,6 +158,13 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
     }
 
     /**
+     * 长按事件监听
+     */
+    public void setOnItemLongClickedListener(OnRecyclerViewItemLongClickListener listener) {
+        this.mOnItemLongClickListener = listener;
+    }
+
+    /**
      * 实现view的单击事件接口
      */
     @Override
@@ -165,13 +174,26 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
         }
     }
 
+    /**
+     * 实现view的长按事件接口
+     */
+//    @Override
+//    public boolean onLongClick(View v) {
+//        if (mOnItemLongClickListener != null) {
+//            mOnItemLongClickListener.onItemLongClick(v, (BuPost) v.getTag());
+//        }return true;
+//    }
+
     public void refresh(ArrayList<BuPost> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
-
     public interface OnRecyclerViewItemClickListener {
         void onItemClick(View view, BuPost data);
+    }
+
+    public interface OnRecyclerViewItemLongClickListener {
+        void onItemLongClick(View view, BuPost data);
     }
 
     // Provide a reference to the views for each data item
@@ -181,9 +203,9 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
         // each data item is just a string in this case
         public TextView mAuthorTextView;
         public TextView mSubjectTextView;
-        public TextView mQuotesTextView;
+        public TextViewFixTouchConsume mQuotesTextView;
         public TextView mTimeTextView;
-        public TextView mMessageTextView;
+        public TextViewFixTouchConsume mMessageTextView;
         public ImageView mAvatarImageView;
 
         public ViewHolder(View v) {
@@ -191,9 +213,9 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             mAvatarImageView = (ImageView) v.findViewById(R.id.avatar_imageview);
             mAuthorTextView = (TextView) v.findViewById(R.id.author_textview);
             mSubjectTextView = (TextView) v.findViewById(R.id.subject_textview);
-            mQuotesTextView = (TextView) v.findViewById(R.id.quotes_textview);
+            mQuotesTextView = (TextViewFixTouchConsume) v.findViewById(R.id.quotes_textview);
             mTimeTextView = (TextView) v.findViewById(R.id.time_textview);
-            mMessageTextView = (TextView) v.findViewById(R.id.message_textview);
+            mMessageTextView = (TextViewFixTouchConsume) v.findViewById(R.id.message_textview);
         }
     }
 }
