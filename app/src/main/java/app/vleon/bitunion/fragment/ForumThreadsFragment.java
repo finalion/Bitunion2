@@ -135,6 +135,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(getActivity());
         mThreadsRecyclerView.setLayoutManager(mLayoutManager);
+
         mThreadsRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mThreadsRecyclerView.enableLoadmore();
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(getActivity()).inflate(R.layout.load_more, null));
@@ -160,6 +161,8 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                 app.getAPI().getThreadsList(mForumId, mFrom, mTo);
             }
         });
+        // 设置滚动条颜色变化
+        mThreadsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccentLight, R.color.colorAccent);
         mThreadsRecyclerView.setScrollViewCallbacks(new ObservableScrollViewCallbacks() {
             @Override
             public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {

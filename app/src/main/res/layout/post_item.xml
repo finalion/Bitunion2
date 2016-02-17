@@ -2,6 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
     android:orientation="vertical"
     android:paddingBottom="12dp"
     android:paddingEnd="12dp"
@@ -13,6 +16,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
+        android:clickable="false"
+        android:focusable="false"
         android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -53,9 +58,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
         android:layout_marginTop="10dp"
+        android:clickable="false"
+        android:focusable="false"
         android:orientation="vertical">
 
-    <TextView
+        <TextView
             android:id="@+id/subject_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
