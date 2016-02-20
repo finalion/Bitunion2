@@ -5,19 +5,14 @@
     android:layout_height="match_parent"
     tools:context=".fragment.ForumThreadsFragment">
 
-    <!--<ProgressBar-->
-    <!--android:id="@+id/request_forum_threads_progress"-->
-    <!--style="?android:attr/progressBarStyle"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="center"-->
-    <!--android:visibility="gone" />-->
 
     <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
         android:id="@+id/threads_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical" />
+        android:background="@android:color/white"
+        android:scrollbars="vertical"
+        app:recyclerviewClipToPadding="true" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/custom_urv_add_floating_button"
@@ -28,17 +23,4 @@
         android:src="@drawable/ic_create_white_18dp"
         app:layout_behavior="app.vleon.bitunion.ui.FABScrollBehavior" />
 
-    <!--<com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton-->
-    <!--android:id="@+id/custom_urv_add_floating_button"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="end|bottom"-->
-    <!--android:layout_marginBottom="10dp"-->
-    <!--android:layout_marginEnd="10dp"-->
-    <!--app:elevation="3dp"-->
-    <!--app:icon="@drawable/ic_create_white_18dp"-->
-    <!--app:urv_fab_alphaNormal="1"-->
-    <!--app:urv_fab_alphaPressed="1"-->
-    <!--app:urv_fab_colorNormal="@color/colorPrimary"-->
-    <!--app:urv_fab_colorPressed="@color/colorPrimaryDark" />-->
 </android.support.design.widget.CoordinatorLayout>

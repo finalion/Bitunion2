@@ -290,7 +290,6 @@ public class BuAPI {
      * 注销
      */
     public void logout() {
-        final Gson gson = new Gson();
         JsonObjectRequest logoutRequest = new JsonObjectRequest(LOGGING_URL, new JSONObject(buildPostParams("logout")), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {

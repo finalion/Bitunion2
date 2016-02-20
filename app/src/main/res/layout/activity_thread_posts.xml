@@ -24,7 +24,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:scrollbars="vertical" />
+        android:scrollbars="vertical"
+        app:recyclerviewClipToPadding="true"
+        app:recyclerviewDefaultSwipeColor="@color/colorPrimary" />
 
     <!--<com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.JellyBeanFloatingActionButton-->
     <!--android:id="@+id/custom_urv_add_floating_button_reply"-->
@@ -53,12 +55,12 @@
         android:src="@drawable/ic_create_white_18dp"
         app:layout_behavior="app.vleon.bitunion.ui.FABScrollBehavior" />
 
-    <ProgressBar
-        android:id="@+id/request_posts_progress"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
+    <!--<ProgressBar-->
+    <!--android:id="@+id/request_posts_progress"-->
+    <!--style="?android:attr/progressBarStyle"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_centerInParent="true"-->
+    <!--android:visibility="gone" />-->
 
 </android.support.design.widget.CoordinatorLayout>

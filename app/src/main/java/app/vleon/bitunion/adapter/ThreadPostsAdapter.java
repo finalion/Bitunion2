@@ -23,6 +23,7 @@ import app.vleon.bitunion.PersonalInfoActivity;
 import app.vleon.bitunion.R;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.ui.CircleTransform;
 import app.vleon.bitunion.ui.TextViewFixTouchConsume;
 import app.vleon.bitunion.util.GlideImageGetter;
 import app.vleon.bitunion.util.HtmlTagHandler;
@@ -71,8 +72,9 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                             .load(postInfo.avatar)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .fitCenter()
-//                            .placeholder(R.drawable.noavatar)
-//                            .error(R.drawable.noavatar)
+                            .placeholder(R.drawable.noavatar)
+                            .error(R.drawable.noavatar)
+                            .transform(new CircleTransform(mContext))
                             .crossFade()
                             .into(holder.mAvatarImageView);
 //                    holder.mAvatarImageView.setImageResource(R.drawable.noavatar);

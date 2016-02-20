@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "app.vleon.bitunion"
         minSdkVersion 19
-        targetSdkVersion 22
+        targetSdkVersion 23
         versionCode 9
         versionName "1.0"
     }
@@ -23,7 +23,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.mikepenz:materialdrawer:4.6.3@aar') {
+    compile('com.mikepenz:materialdrawer:5.0.0@aar') {
         transitive = true
     }
     // 23版本 recylerview不能监听ObservableScrollViewCallbacks的onUpOrCancelMotionEvent事件
@@ -40,7 +40,7 @@ dependencies {
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.github.bumptech.glide:glide:3.6.1'
     compile 'com.marshalchen.ultimaterecyclerview:library:0.3.18'
-    compile 'de.hdodenhof:circleimageview:2.0.0'
+//    compile 'de.hdodenhof:circleimageview:2.0.0'
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.mikepenz:iconics-core:2.5.4@aar'
     compile 'com.mikepenz:community-material-typeface:1.3.41.1@aar'

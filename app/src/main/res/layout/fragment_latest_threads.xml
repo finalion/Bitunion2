@@ -4,18 +4,20 @@
     android:layout_height="match_parent"
     tools:context=".fragment.ForumThreadsFragment">
 
-    <!--<ProgressBar-->
-    <!--android:id="@+id/request_latest_threads_progress"-->
-    <!--style="?android:attr/progressBarStyle"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="center"-->
-    <!--android:visibility="gone" />-->
+
 
     <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
         android:id="@+id/latest_threads_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/white"
         android:scrollbars="vertical" />
 
+    <ProgressBar
+        android:id="@+id/request_latest_threads_progress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
 </FrameLayout>

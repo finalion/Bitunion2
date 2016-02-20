@@ -36,15 +36,13 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp">
 
-                <de.hdodenhof.circleimageview.CircleImageView
+                <ImageView
                     android:id="@+id/avatar_page_imageview"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="4dp"
-                    android:src="@drawable/noavatar"
-                    app:civ_border_color="#FFFFFFFF"
-                    app:civ_border_width="0dp" />
+                    android:src="@drawable/noavatar" />
 
                 <TextView
                     android:id="@+id/username_page_textview"

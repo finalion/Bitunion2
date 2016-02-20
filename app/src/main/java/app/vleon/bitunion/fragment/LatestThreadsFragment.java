@@ -1,12 +1,8 @@
 package app.vleon.bitunion.fragment;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -39,16 +35,9 @@ import app.vleon.bitunion.buapi.BuLatestThread;
  * create an instance of this fragment.
  */
 public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestResponseListener {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
     MyApplication app;
     ArrayList<BuLatestThread> mLatestThreadsList;
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
     private LatestThreadsAdapter mAdapter;
     private UltimateRecyclerView mLatestThreadsRecyclerView;
     private LinearLayoutManager mLayoutManager;
@@ -66,19 +55,12 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
      * @return A new instance of fragment LatestThreadsFragment.
      */
     public static LatestThreadsFragment newInstance() {
-        LatestThreadsFragment fragment = new LatestThreadsFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-        return fragment;
+        return new LatestThreadsFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
         app = (MyApplication) getActivity().getApplicationContext();
         mLatestThreadsList = new ArrayList<>();
 
@@ -93,7 +75,6 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
             }
         });
         app.getAPI().setOnLatestThreadsResponseListener(this);
-        app.getAPI().getLatestThreads();
     }
 
     @Override
@@ -101,7 +82,7 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_latest_threads, container, false);
-//        mProgressBar = (ProgressBar)view.findViewById(R.id.request_latest_threads_progress);
+        mProgressBar = (ProgressBar) view.findViewById(R.id.request_latest_threads_progress);
         mLatestThreadsRecyclerView = (UltimateRecyclerView) view.findViewById(R.id.latest_threads_recycler_view);
         mLatestThreadsRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
@@ -111,15 +92,33 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
         mLatestThreadsRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-//                mThreadsRecyclerView.setRefreshing(false);
                 mLayoutManager.scrollToPosition(0);
                 app.getAPI().getLatestThreads();
             }
         });
         // 设置滚动条颜色变化
         mLatestThreadsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccent);
-//        showProgress(true);
+
+//        mProgressBar.setVisibility(View.VISIBLE);
+        showRefreshingProgress(true);
+        app.getAPI().getLatestThreads();
+//        mProgressBar.setVisibility(View.GONE);
         return view;
+    }
+
+    /**
+     * 显示SwipeRefreshLayout的进度指示，bug，不能直接调用setRefreshing
+     * https://github.com/cymcsg/UltimateRecyclerView/issues/192
+     *
+     * @param show whether to show indicator
+     */
+    public void showRefreshingProgress(final boolean show) {
+        mLatestThreadsRecyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                mLatestThreadsRecyclerView.setRefreshing(show);
+            }
+        });
     }
 
     @Override
@@ -141,8 +140,9 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
 
     @Override
     public void handleLatestThreadsGetterResponse(BuAPI.Result result, ArrayList<BuLatestThread> latestThreadsList) {
-//        if (clearFlag)
-//            mThreadsList.clear();
+        showRefreshingProgress(false);
+//        mProgressBar.clearAnimation();
+//        mProgressBar.setVisibility(View.INVISIBLE);
         switch (result) {
             case SUCCESS:
                 mLatestThreadsList.clear();
@@ -155,48 +155,11 @@ public class LatestThreadsFragment extends Fragment implements BuAPI.OnLatestRes
             case SUCCESS_EMPTY:
                 break;
         }
-//        showProgress(false);
     }
 
     @Override
     public void handleLatestThreadsGetterErrorResponse(VolleyError error) {
-//        showProgress(false);
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLatestThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLatestThreadsRecyclerView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLatestThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressBar.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLatestThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        showRefreshingProgress(false);
     }
 
     /**

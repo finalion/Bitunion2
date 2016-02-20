@@ -1,12 +1,8 @@
 package app.vleon.bitunion.fragment;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -16,7 +12,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
@@ -60,7 +55,6 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
     /*Main ListView*/
     private UltimateRecyclerView mThreadsRecyclerView;
     private LinearLayoutManager mLayoutManager;
-    private ProgressBar mProgressBar;
     private OnForumThreadsFragmentInteractionListener mListener;
 
     public ForumThreadsFragment() {
@@ -108,7 +102,6 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         });
         app.getAPI().setOnPostNewThreadResponseListener(this);
         app.getAPI().setOnThreadsResponseListener(this);
-        app.getAPI().getThreadsList(mForumId, mFrom, mTo);
     }
 
     @Override
@@ -116,10 +109,8 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_forum_threads, container, false);
-//        mProgressBar = (ProgressBar) view.findViewById(R.id.request_forum_threads_progress);
         mThreadsRecyclerView = (UltimateRecyclerView) view.findViewById(R.id.threads_recycler_view);
         mThreadsRecyclerView.setHasFixedSize(true);
-//        showProgress(true);
         //floating action button
         mFloatingButton = (FloatingActionButton) view.findViewById(R.id.custom_urv_add_floating_button);
         mFloatingButton.setOnClickListener(new View.OnClickListener() {
@@ -143,10 +134,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         mThreadsRecyclerView.setOnLoadMoreListener(new UltimateRecyclerView.OnLoadMoreListener() {
             @Override
             public void loadMore(int itemsCount, int maxLastVisiblePosition) {
-                clearFlag = false;
-                mFrom = mTo + 1;
-                mTo = mFrom + 20;
-                app.getAPI().getThreadsList(mForumId, mFrom, mTo);
+                loadMoreData();
             }
         });
 
@@ -155,10 +143,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
             public void onRefresh() {
 //                mThreadsRecyclerView.setRefreshing(false);
                 mLayoutManager.scrollToPosition(0);
-                clearFlag = true;
-                mFrom = 0;
-                mTo = 20;
-                app.getAPI().getThreadsList(mForumId, mFrom, mTo);
+                refreshData();
             }
         });
         // 设置滚动条颜色变化
@@ -186,7 +171,26 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 //                }
             }
         });
+
+        showRefreshingProgress(true);
+        app.getAPI().getThreadsList(mForumId, mFrom, mTo);
+
         return view;
+    }
+
+    /**
+     * 显示SwipeRefreshLayout的进度指示，bug，不能直接调用setRefreshing
+     * https://github.com/cymcsg/UltimateRecyclerView/issues/192
+     *
+     * @param show whether to show indicator
+     */
+    public void showRefreshingProgress(final boolean show) {
+        mThreadsRecyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                mThreadsRecyclerView.setRefreshing(show);
+            }
+        });
     }
 
     @Override
@@ -209,6 +213,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 
     @Override
     public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuThread> threadsList) {
+        showRefreshingProgress(false);
         if (clearFlag)
             mThreadsList.clear();
         switch (result) {
@@ -226,59 +231,17 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
                 mThreadsRecyclerView.disableLoadmore();
                 break;
         }
-//        showProgress(false);
     }
 
     @Override
     public void handleThreadsGetterErrorResponse(VolleyError error) {
+        showRefreshingProgress(false);
         Toast.makeText(getActivity(), "查询异常", Toast.LENGTH_SHORT).show();
-//        showProgress(false);
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mThreadsRecyclerView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressBar.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            mThreadsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     @Override
     public void handlePostNewThreadResponse(BuAPI.Result result, String tid) {
         if (result == BuAPI.Result.SUCCESS && tid != null) {
-//            clearFlag = true;
-//            mFrom = 0;
-//            mTo = 20;
-//
-//            app.getAPI().getThreadPosts(mForumId, mFrom, mTo);
             Intent intent = new Intent(getActivity(), ThreadPostsActivity.class);
             intent.putExtra("tid", tid);
             startActivity(intent);
@@ -288,6 +251,20 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
     @Override
     public void handlePostNewThreadErrorResponse(VolleyError error) {
 
+    }
+
+    public void loadMoreData() {
+        clearFlag = false;
+        mFrom = mTo + 1;
+        mTo = mFrom + 20;
+        app.getAPI().getThreadsList(mForumId, mFrom, mTo);
+    }
+
+    public void refreshData() {
+        clearFlag = true;
+        mFrom = 0;
+        mTo = 20;
+        app.getAPI().getThreadsList(mForumId, mFrom, mTo);
     }
 
     /**
@@ -304,4 +281,5 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         // TODO: Update argument type and name
         void onForumThreadsFragmentInteraction(Uri uri);
     }
+
 }

@@ -7,6 +7,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.VolleyError;
@@ -15,13 +16,13 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuMember;
+import app.vleon.bitunion.ui.CircleTransform;
 import app.vleon.bitunion.util.GlideImageGetter;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 public class PersonalInfoActivity extends AppCompatActivity {
 
     MyApplication app;
-    CircleImageView mAvatarImageView;
+    ImageView mAvatarImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +40,7 @@ public class PersonalInfoActivity extends AppCompatActivity {
         });
 //        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mAvatarImageView = (CircleImageView) findViewById(R.id.avatar_page_imageview);
+        mAvatarImageView = (ImageView) findViewById(R.id.avatar_page_imageview);
         app = (MyApplication) getApplicationContext();
 
         Intent intent = getIntent();
@@ -108,8 +109,9 @@ public class PersonalInfoActivity extends AppCompatActivity {
         Glide.with(this).load(memberInfo.avatar)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .fitCenter()
-//                .placeholder(R.drawable.noavatar)
+                .placeholder(R.drawable.noavatar)
                 .error(R.drawable.noavatar)
+                .transform(new CircleTransform(this))
                 .crossFade()
                 .into(mAvatarImageView);
     }

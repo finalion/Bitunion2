@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
                             @Override
                             public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                                 if (drawerItem != null) {
-                                    int identifier = drawerItem.getIdentifier();
+                                    int identifier = (int) drawerItem.getIdentifier();
                                     String tag = (String) drawerItem.getTag();
                                     switch (identifier) {
                                         case 13:
