@@ -57,6 +57,7 @@ public class BuAPI {
     int mThreadTid;
     int mPostsFrom;
     int mPostsTo;
+    int mFloorCount;
     String mQueryUid;
     Context mContext;
     int mNetType;
@@ -530,6 +531,10 @@ public class BuAPI {
      * @param to   帖子结束编号 to-from <=20
      */
     public void getThreadPosts(final int tid, final int from, final int to) {
+        // from计算楼层数
+        if (from == 0) {
+            mFloorCount = 0;
+        }
         mThreadTid = tid;
         mPostsFrom = from;
         mPostsTo = to;
@@ -539,7 +544,11 @@ public class BuAPI {
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+                        /**
+                         * result: success, postlist: [], total_reply_count: 41
+                         */
                         Log.d("TAG", response.toString());
+                        int total_reply_count = 0;
                         try {
                             String result = response.getString("result");
                             if (result.equals("success")) {
@@ -551,13 +560,15 @@ public class BuAPI {
                                     tempList = gson.fromJson(tmp, new TypeToken<List<BuPost>>() {
                                     }.getType());
                                     for (BuPost post : tempList) {
+                                        post.floor = ++mFloorCount;
                                         post.parse();
                                     }
+                                    total_reply_count = response.getInt("total_reply_count");
                                 } else {
                                     mPostsResult = Result.SUCCESS_EMPTY;   //成功，但无数据
                                 }
                                 if (mOnPostsResponseListener != null)
-                                    mOnPostsResponseListener.handlePostsGetterResponse(mPostsResult, tempList);
+                                    mOnPostsResponseListener.handlePostsGetterResponse(mPostsResult, tempList, total_reply_count);
                             } else {
                                 String msg = response.getString("msg");
                                 switch (msg) {
@@ -787,6 +798,7 @@ public class BuAPI {
         FAILURE, // 返回数据失败，result字段为failure
         IP_LOGGED, //返回数据失败，msg字段为ip+logged
         SUCCESS_EMPTY, // 返回数据成功，但字段没有数据
+        MSG_TOTAL_REPLY_COUNT, //无法继续获取帖子时，返回
         SESSIONLOGIN, // obsolete
         NETWRONG, // 没有返回数据
         NOTLOGIN, // api还未登录
@@ -823,7 +835,7 @@ public class BuAPI {
     }
 
     public interface OnPostsResponseListener {
-        void handlePostsGetterResponse(Result result, ArrayList<BuPost> postsList);
+        void handlePostsGetterResponse(Result result, ArrayList<BuPost> postsList, int replyCount);
 
         void handlePostsGetterErrorResponse(VolleyError error);
     }

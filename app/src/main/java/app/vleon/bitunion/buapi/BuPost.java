@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
  * Created by vleon on 2016/1/16.
  */
 public class BuPost {
+    public int floor; //楼层数
     public String pid;
     public String fid;
     public String tid;

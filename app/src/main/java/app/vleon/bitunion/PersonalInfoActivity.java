@@ -108,11 +108,11 @@ public class PersonalInfoActivity extends AppCompatActivity {
 
         Glide.with(this).load(memberInfo.avatar)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .fitCenter()
+                .centerCrop()
                 .placeholder(R.drawable.noavatar)
                 .error(R.drawable.noavatar)
-                .transform(new CircleTransform(this))
                 .crossFade()
+                .transform(new CircleTransform(this))
                 .into(mAvatarImageView);
     }
 

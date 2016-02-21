@@ -71,7 +71,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     Glide.with(mContext)
                             .load(postInfo.avatar)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .fitCenter()
+                            .centerCrop()
                             .placeholder(R.drawable.noavatar)
                             .error(R.drawable.noavatar)
                             .transform(new CircleTransform(mContext))
@@ -91,6 +91,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                     }
                 });
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
+                holder.mFloorTextView.setText(String.format("%d", postInfo.floor));
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
                 holder.mMessageTextView.setLinksClickable(true);
                 holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());
@@ -185,11 +186,11 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
 //            mOnItemLongClickListener.onItemLongClick(v, (BuPost) v.getTag());
 //        }return true;
 //    }
-
     public void refresh(ArrayList<BuPost> dataset) {
         mDataset = dataset;
         this.notifyDataSetChanged();
     }
+
     public interface OnRecyclerViewItemClickListener {
         void onItemClick(View view, BuPost data);
     }
@@ -205,6 +206,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
         // each data item is just a string in this case
         public TextView mAuthorTextView;
         public TextView mSubjectTextView;
+        public TextView mFloorTextView;
         public TextViewFixTouchConsume mQuotesTextView;
         public TextView mTimeTextView;
         public TextViewFixTouchConsume mMessageTextView;
@@ -214,6 +216,7 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             super(v);
             mAvatarImageView = (ImageView) v.findViewById(R.id.avatar_imageview);
             mAuthorTextView = (TextView) v.findViewById(R.id.author_textview);
+            mFloorTextView = (TextView) v.findViewById(R.id.floor_textview);
             mSubjectTextView = (TextView) v.findViewById(R.id.subject_textview);
             mQuotesTextView = (TextViewFixTouchConsume) v.findViewById(R.id.quotes_textview);
             mTimeTextView = (TextView) v.findViewById(R.id.time_textview);

@@ -152,7 +152,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
 
     @Override
-    public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuPost> postsList) {
+    public void handlePostsGetterResponse(BuAPI.Result result, ArrayList<BuPost> postsList, int replyCount) {
         showRefreshingProgress(false);
         if (clearFlag) {
             mPostsList.clear();
@@ -161,14 +161,15 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
             case SUCCESS:
                 mPostsList.addAll(postsList);
                 mAdapter.refresh(mPostsList);
-                //  TODO: 2016/1/18 恰好20个posts怎么处理？
-                if (postsList.size() < 20) {
+                // 如果当前回复数目大于replyCount,禁用上拉刷新
+                if (mPostsList.size() - 1 >= replyCount) {
                     mPostsRecyclerView.disableLoadmore();
                 }
                 break;
             case SUCCESS_EMPTY:
                 mPostsRecyclerView.disableLoadmore();
                 break;
+
             default:
                 break;
         }
@@ -192,7 +193,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
     public void loadMoreData() {
         clearFlag = false;
-        mFrom = mTo + 1;
+        mFrom = mTo;
         mTo = mFrom + 20;
         app.getAPI().getThreadPosts(mTid, mFrom, mTo);
     }
