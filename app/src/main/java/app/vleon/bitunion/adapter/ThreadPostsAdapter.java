@@ -1,5 +1,6 @@
 package app.vleon.bitunion.adapter;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
@@ -8,7 +9,9 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -92,6 +95,16 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
                 });
                 holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
                 holder.mFloorTextView.setText(String.format("%d", postInfo.floor));
+                holder.mFloorTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                        ListView listView = new ListView(mContext);
+                        listView.setAdapter(
+                                new ArrayAdapter<String>(mContext, android.R.layout.simple_list_item_1, new String[]{"@作者", "回复帖子"}));
+                        builder.setView(listView).show();
+                    }
+                });
                 holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
                 holder.mMessageTextView.setLinksClickable(true);
                 holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());

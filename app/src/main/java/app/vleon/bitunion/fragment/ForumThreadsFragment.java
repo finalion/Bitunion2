@@ -255,7 +255,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 
     public void loadMoreData() {
         clearFlag = false;
-        mFrom = mTo + 1;
+        mFrom = mTo;
         mTo = mFrom + 20;
         app.getAPI().getThreadsList(mForumId, mFrom, mTo);
     }

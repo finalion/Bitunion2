@@ -19,11 +19,11 @@
         android:contentDescription="@string/logo"
         android:src="@drawable/logo" />
 
-    <ProgressBar
-        android:id="@+id/progressSplash"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/imageViewSplash"
-        android:layout_centerHorizontal="true" />
+    <!--<ProgressBar-->
+    <!--android:id="@+id/progressSplash"-->
+    <!--style="?android:attr/progressBarStyle"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_below="@id/imageViewSplash"-->
+    <!--android:layout_centerHorizontal="true" />-->
 </RelativeLayout>
