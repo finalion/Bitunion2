@@ -51,6 +51,8 @@ public class BuPost {
 
     public void parse() {
         try {
+            author = URLDecoder.decode(author, "UTF-8");
+            subject = URLDecoder.decode(subject, "UTF-8");
             message = URLDecoder.decode(message, "UTF-8");
             avatar = URLDecoder.decode(avatar, "UTF-8");
             if (hasAttachment()) {
@@ -60,8 +62,9 @@ public class BuPost {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        this.avatar = getTrueAvatar();
-        this.quotes = new ArrayList<>();
+        lastedit = BuAPI.formatTime(lastedit);
+        avatar = getTrueAvatar();
+        quotes = new ArrayList<>();
         message = prettify(message);
         this.content = parseQuotes(message);
         if (hasAttachment()) {

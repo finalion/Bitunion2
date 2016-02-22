@@ -2,30 +2,28 @@ package app.vleon.bitunion.adapter;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import app.vleon.bitunion.PersonalInfoActivity;
 import app.vleon.bitunion.R;
-import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
+import app.vleon.bitunion.fragment.PostDialogFragment;
 import app.vleon.bitunion.ui.CircleTransform;
 import app.vleon.bitunion.ui.TextViewFixTouchConsume;
 import app.vleon.bitunion.util.GlideImageGetter;
@@ -69,78 +67,97 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             } else {
                 holder.mSubjectTextView.setVisibility(View.VISIBLE);
             }
-            try {
-                if (!postInfo.avatar.equals("")) {
-                    Glide.with(mContext)
-                            .load(postInfo.avatar)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .centerCrop()
-                            .placeholder(R.drawable.noavatar)
-                            .error(R.drawable.noavatar)
-                            .transform(new CircleTransform(mContext))
-                            .crossFade()
-                            .into(holder.mAvatarImageView);
+
+            if (!postInfo.avatar.equals("")) {
+                Glide.with(mContext)
+                        .load(postInfo.avatar)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .placeholder(R.drawable.noavatar)
+                        .error(R.drawable.noavatar)
+                        .transform(new CircleTransform(mContext))
+                        .crossFade()
+                        .into(holder.mAvatarImageView);
 //                    holder.mAvatarImageView.setImageResource(R.drawable.noavatar);
 
-                } else {
-                    holder.mAvatarImageView.setImageResource(R.drawable.noavatar);
+            } else {
+                holder.mAvatarImageView.setImageResource(R.drawable.noavatar);
+            }
+            holder.mAvatarImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, PersonalInfoActivity.class);
+                    intent.putExtra("uid", postInfo.uid);
+                    mContext.startActivity(intent);
                 }
-                holder.mAvatarImageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(mContext, PersonalInfoActivity.class);
-                        intent.putExtra("uid", postInfo.uid);
-                        mContext.startActivity(intent);
-                    }
-                });
-                holder.mAuthorTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.author, "UTF-8")));
-                holder.mFloorTextView.setText(String.format("%d", postInfo.floor));
-                holder.mFloorTextView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                        ListView listView = new ListView(mContext);
-                        listView.setAdapter(
-                                new ArrayAdapter<String>(mContext, android.R.layout.simple_list_item_1, new String[]{"@作者", "回复帖子"}));
-                        builder.setView(listView).show();
-                    }
-                });
-                holder.mSubjectTextView.setText(Html.fromHtml(URLDecoder.decode(postInfo.subject, "UTF-8")));
-                holder.mMessageTextView.setLinksClickable(true);
-                holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());
-                holder.mMessageTextView.setText(Utils.getClickableHtml(postInfo.content, null,
+            });
+            holder.mAuthorTextView.setText(postInfo.author);
+            holder.mFloorTextView.setText(String.format("%d", postInfo.floor));
+            holder.mFloorTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setItems(new String[]{"@作者", "回复帖子"}, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String preMessage = "";
+                            switch (which) {
+                                case 0:
+                                    preMessage = String.format("[@]%s[/@]", postInfo.author);
+                                    break;
+                                case 1:
+                                    String shortPre = postInfo.content;
+                                    if (postInfo.content.length() > 100) {
+                                        shortPre = shortPre.substring(0, 100) + " ... ";
+                                    }
+                                    preMessage = String.format("[quote=%s][b]%s[/b] %s\n%s[/quote]",
+                                            postInfo.pid, postInfo.author, postInfo.lastedit, shortPre);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            PostDialogFragment pdf = new PostDialogFragment();
+                            pdf.setLaunchType(1); // hide subject textview
+                            pdf.setPreMessage(preMessage);
+                            AppCompatActivity activity = (AppCompatActivity) mContext;
+                            pdf.show(activity.getSupportFragmentManager(), "reply_dialog");
+                        }
+                    }).show();
+                }
+            });
+            holder.mSubjectTextView.setText(Html.fromHtml(postInfo.subject));
+            holder.mMessageTextView.setLinksClickable(true);
+            holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());
+            holder.mMessageTextView.setText(Utils.getClickableHtml(postInfo.content, null,
 //                        new Utils.OnClickedClickableSpanListener() {
 //                            @Override
 //                            public void onClick(View view, URLSpan urlSpan) {
 //                                Toast.makeText(mContext, urlSpan.getURL(), Toast.LENGTH_SHORT).show();
 //                            }
 //                        },
-                        new GlideImageGetter(mContext, holder.mMessageTextView), new HtmlTagHandler(mContext)));
+                    new GlideImageGetter(mContext, holder.mMessageTextView), new HtmlTagHandler(mContext)));
 
-                holder.mQuotesTextView.setLinksClickable(true);
-                holder.mQuotesTextView.setMovementMethod(LinkMovementMethod.getInstance());
-                if (postInfo.quotes.size() > 0) {
-                    holder.mQuotesTextView.setVisibility(View.VISIBLE);
-                    // 显示引用信息部分
-                    String quoteString = "";
-                    BuPost.Quote tmpQuote;
-                    for (int i = 0; i < postInfo.quotes.size(); i++) {
-                        tmpQuote = postInfo.quotes.get(i);
-                        if (i > 0)
-                            quoteString += "<br/><br/>";
-                        quoteString += tmpQuote.author + ":&nbsp;" + tmpQuote.content;
-                    }
-                    holder.mQuotesTextView.setText(Html.fromHtml(quoteString, new GlideImageGetter(mContext, holder.mQuotesTextView), null));
-                } else {
-                    holder.mQuotesTextView.setVisibility(View.GONE);
+            holder.mQuotesTextView.setLinksClickable(true);
+            holder.mQuotesTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            if (postInfo.quotes.size() > 0) {
+                holder.mQuotesTextView.setVisibility(View.VISIBLE);
+                // 显示引用信息部分
+                String quoteString = "";
+                BuPost.Quote tmpQuote;
+                for (int i = 0; i < postInfo.quotes.size(); i++) {
+                    tmpQuote = postInfo.quotes.get(i);
+                    if (i > 0)
+                        quoteString += "<br/><br/>";
+                    quoteString += tmpQuote.author + ":&nbsp;" + tmpQuote.content;
                 }
-
-
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                holder.mSubjectTextView.setText(R.string.encode_error);
+                holder.mQuotesTextView.setText(Html.fromHtml(quoteString, new GlideImageGetter(mContext, holder.mQuotesTextView), null));
+            } else {
+                holder.mQuotesTextView.setVisibility(View.GONE);
             }
-            holder.mTimeTextView.setText(BuAPI.formatTime(postInfo.lastedit));
+
+
+            holder.mTimeTextView.setText(postInfo.lastedit);
             holder.itemView.setTag(postInfo); //将当前帖子设置为itemview的tag，方便点击事件回调
 
         }

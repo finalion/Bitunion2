@@ -21,6 +21,7 @@ public class PostDialogFragment extends DialogFragment {
     EditText mSubjectEditText = null;
     EditText mMessageEditText = null;
     private int mLaunchType = 0;
+    private String mPreMessage = "";
 
     @NonNull
     @Override
@@ -33,6 +34,8 @@ public class PostDialogFragment extends DialogFragment {
             mSubjectEditText.setVisibility(View.GONE);
         else
             mSubjectEditText.setVisibility(View.VISIBLE);
+        mMessageEditText.setText(String.format("%s\n", mPreMessage));
+        mMessageEditText.setSelection(mPreMessage.length()); //设置光标位置
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(view)
                 .setPositiveButton(R.string.post, new DialogInterface.OnClickListener() {
@@ -90,5 +93,9 @@ public class PostDialogFragment extends DialogFragment {
 
     public void setLaunchType(int type) {
         mLaunchType = type;
+    }
+
+    public void setPreMessage(String preMessage) {
+        mPreMessage = preMessage;
     }
 }

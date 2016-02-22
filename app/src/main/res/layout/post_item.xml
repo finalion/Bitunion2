@@ -105,7 +105,8 @@
             android:background="@drawable/quotes_background"
             android:padding="7dp"
             android:textSize="15sp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:text="Quotes" />
 
         <app.vleon.bitunion.ui.TextViewFixTouchConsume
             android:id="@+id/message_textview"
@@ -113,7 +114,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:textColor="@color/abc_primary_text_material_light"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            tools:text="Content \n\n Para1 \n\n Para2 \n\n Para3" />
 
     </LinearLayout>
 

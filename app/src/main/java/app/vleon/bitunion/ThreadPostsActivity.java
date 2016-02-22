@@ -95,9 +95,6 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mPostsRecyclerView.setDefaultSwipeToRefreshColorScheme(R.color.colorAccent);
         mAdapter.setCustomLoadMoreView(LayoutInflater.from(this).inflate(R.layout.load_more, null));
 
-        mPostsRecyclerView.showFloatingActionButton();
-
-
         app.getAPI().setOnPostsResponseListener(this);
         app.getAPI().setOnPostNewReplyResponseListener(this);
 

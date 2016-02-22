@@ -163,7 +163,7 @@ public class BuAPI {
     }
 
     public String getSession() {
-        return mLoginInfo.session;
+        return (mLoginInfo != null) ? mLoginInfo.session : null;
     }
 
     public HashMap<String, Object> buildPostParams(String action) {
@@ -279,8 +279,6 @@ public class BuAPI {
                     }
                 });
         mRequestQueue.add(loginRequest);
-
-
     }
 
     public void login(String username, String password) {
