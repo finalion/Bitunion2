@@ -89,7 +89,6 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
             mUsernameView.setText(sp.getString("username", ""));
             mPasswordView.setText(sp.getString("password", ""));
             mNetSwitch.setChecked(sp.getInt("net", 1) == BuAPI.OUTNET);
-            handleLoginFailure(autologinResult);
         }
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -221,13 +220,6 @@ public class LoginActivity extends AppCompatActivity implements BuAPI.OnLoginRes
         Log.d("TAG", error.getMessage(), error);
         Toast.makeText(LoginActivity.this, "登录异常: " + error.getMessage(), Toast.LENGTH_SHORT).show();
         showProgress(false);
-    }
-
-    public void handleLoginFailure(int result) {
-        switch (result) {
-
-        }
-
     }
 
     public void saveMsg(String username, String password, int net) {

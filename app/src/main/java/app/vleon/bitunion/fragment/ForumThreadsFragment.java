@@ -241,6 +241,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 
     @Override
     public void handlePostNewThreadResponse(BuAPI.Result result, String tid) {
+        Toast.makeText(getActivity(), "发表成功", Toast.LENGTH_SHORT).show();
         if (result == BuAPI.Result.SUCCESS && tid != null) {
             Intent intent = new Intent(getActivity(), ThreadPostsActivity.class);
             intent.putExtra("tid", tid);
@@ -250,7 +251,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 
     @Override
     public void handlePostNewThreadErrorResponse(VolleyError error) {
-
+        Toast.makeText(getActivity(), "发表失败", Toast.LENGTH_SHORT).show();
     }
 
     public void loadMoreData() {

@@ -1,5 +1,7 @@
 package app.vleon.bitunion;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -73,7 +75,33 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mAdapter.setOnItemClickedListener(new ThreadPostsAdapter.OnRecyclerViewItemClickListener() {
             @Override
             public void onItemClick(View view, BuPost data) {
-//                Toast.makeText(ThreadPostsActivity.this, "item click", Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(ThreadPostsActivity.this);
+                final BuPost postInfo = data;
+                builder.setItems(new String[]{"@作者", "回复帖子"}, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String preMessage = "";
+                        switch (which) {
+                            case 0:
+                                preMessage = String.format("[@]%s[/@]", postInfo.author);
+                                break;
+                            case 1:
+                                String shortPre = postInfo.content;
+                                if (postInfo.content.length() > 100) {
+                                    shortPre = shortPre.substring(0, 100) + " ... ";
+                                }
+                                preMessage = String.format("[quote=%s][b]%s[/b] %s\n%s[/quote]",
+                                        postInfo.pid, postInfo.author, postInfo.lastedit, shortPre);
+                                break;
+                            default:
+                                break;
+                        }
+                        PostDialogFragment pdf = new PostDialogFragment();
+                        pdf.setLaunchType(1); // hide subject textview
+                        pdf.setPreMessage(preMessage);
+                        pdf.show(getSupportFragmentManager(), "reply_dialog");
+                    }
+                }).show();
             }
         });
         mPostsRecyclerView.setAdapter(mAdapter);
@@ -181,11 +209,12 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
     @Override
     public void handlePostNewReplyResponse(BuAPI.Result result, String pid) {
         refreshData();
+        Toast.makeText(this, "回复成功", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void handlePostNewReplyErrorResponse(VolleyError error) {
-
+        Toast.makeText(this, "回复失败", Toast.LENGTH_SHORT).show();
     }
 
     public void loadMoreData() {

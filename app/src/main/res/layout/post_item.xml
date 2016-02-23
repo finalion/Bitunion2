@@ -50,6 +50,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textStyle="bold"
                 tools:text="AUTHOR" />
 
             <TextView
@@ -64,14 +65,9 @@
                 android:id="@+id/floor_textview"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.3"
-                android:background="@color/colorPrimaryDark"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:textColor="@color/md_white_1000"
-                android:textSize="16sp"
-                tools:text="10" />
+                android:layout_weight="0.5"
+                android:gravity="end"
+                tools:text="[111]" />
 
         </LinearLayout>
     </LinearLayout>

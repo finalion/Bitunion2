@@ -56,13 +56,13 @@ public class SplashActivity extends AppCompatActivity implements BuAPI.OnLoginRe
             case IP_LOGGED:
                 Intent intent1 = new Intent(this, LoginActivity.class);
 //                intent1.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                intent1.putExtra("autologin_result", "ip_logged");
+                intent1.putExtra("autologin_result", 1);
                 startActivity(intent1);
                 finish();
                 break;
             default:
                 Intent intent2 = new Intent(this, LoginActivity.class);
-                intent2.putExtra("autologin_result", "unknown");
+                intent2.putExtra("autologin_result", 2);
                 startActivity(intent2);
                 finish();
                 break;

@@ -1,10 +1,7 @@
 package app.vleon.bitunion.adapter;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -23,7 +20,6 @@ import java.util.ArrayList;
 import app.vleon.bitunion.PersonalInfoActivity;
 import app.vleon.bitunion.R;
 import app.vleon.bitunion.buapi.BuPost;
-import app.vleon.bitunion.fragment.PostDialogFragment;
 import app.vleon.bitunion.ui.CircleTransform;
 import app.vleon.bitunion.ui.TextViewFixTouchConsume;
 import app.vleon.bitunion.util.GlideImageGetter;
@@ -93,39 +89,6 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             });
             holder.mAuthorTextView.setText(postInfo.author);
             holder.mFloorTextView.setText(String.format("%d", postInfo.floor));
-            holder.mFloorTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setItems(new String[]{"@作者", "回复帖子"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String preMessage = "";
-                            switch (which) {
-                                case 0:
-                                    preMessage = String.format("[@]%s[/@]", postInfo.author);
-                                    break;
-                                case 1:
-                                    String shortPre = postInfo.content;
-                                    if (postInfo.content.length() > 100) {
-                                        shortPre = shortPre.substring(0, 100) + " ... ";
-                                    }
-                                    preMessage = String.format("[quote=%s][b]%s[/b] %s\n%s[/quote]",
-                                            postInfo.pid, postInfo.author, postInfo.lastedit, shortPre);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            PostDialogFragment pdf = new PostDialogFragment();
-                            pdf.setLaunchType(1); // hide subject textview
-                            pdf.setPreMessage(preMessage);
-                            AppCompatActivity activity = (AppCompatActivity) mContext;
-                            pdf.show(activity.getSupportFragmentManager(), "reply_dialog");
-                        }
-                    }).show();
-                }
-            });
             holder.mSubjectTextView.setText(Html.fromHtml(postInfo.subject));
             holder.mMessageTextView.setLinksClickable(true);
             holder.mMessageTextView.setMovementMethod(TextViewFixTouchConsume.LocalLinkMovementMethod.getInstance());
@@ -161,6 +124,11 @@ public class ThreadPostsAdapter extends UltimateViewAdapter<ThreadPostsAdapter.V
             holder.itemView.setTag(postInfo); //将当前帖子设置为itemview的tag，方便点击事件回调
 
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
     }
 
     @Override

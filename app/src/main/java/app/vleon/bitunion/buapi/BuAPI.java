@@ -368,6 +368,8 @@ public class BuAPI {
      * 查询当前用户信息
      */
     public void getMyInfo() {
+        Log.d("null check", mUsername);
+        Log.d("null check", mLoginInfo.toString());
         getMemberInfo(mLoginInfo.uid);
     }
 

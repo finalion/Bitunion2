@@ -23,6 +23,7 @@ public class MyApplication extends Application {
     private BuAPI mAPI = null;
     private BuMember mMyInfo = null;
     private BuAPI.LoginInfo mLoginInfo = null;
+
     public void onCreate() {
         super.onCreate();
 
@@ -77,7 +78,7 @@ public class MyApplication extends Application {
     }
 
     public BuAPI getAPI() {
-        return mAPI;
+        return (mAPI == null) ? (new BuAPI(this)) : mAPI;
     }
 
     public BuMember getMyInfo() {

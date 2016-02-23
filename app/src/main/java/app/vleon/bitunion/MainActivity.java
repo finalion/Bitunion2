@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
 
         //设置left drawer
         // Create the AccountHeader
-        mMyProfile = new ProfileDrawerItem().withEmail(app.getAPI().getLoginInfo().username).withIcon(R.drawable.noavatar).withIdentifier(PROFILE_START_FLAG);
+        mMyProfile = new ProfileDrawerItem().withEmail(app.getAPI().getUsername()).withIcon(R.drawable.noavatar).withIdentifier(PROFILE_START_FLAG);
         mHeaderResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
@@ -222,6 +223,46 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
         showLatest();
     }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerResult.getActionBarDrawerToggle().syncState();
+        Log.d("null check", "post create");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        //add the values which need to be saved from the accountHeader to the bundle
+        outState = mDrawerResult.saveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+        Log.d("null check", "save state");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("null check", "destroy");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("null check", "stop");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("null check", "resume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("null check", "pause");
+    }
+
     public void showLatest() {
         getSupportActionBar().setTitle("最新帖子");
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
@@ -242,12 +283,6 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
         transaction.commit();
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerResult.getActionBarDrawerToggle().syncState();
-    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -277,13 +312,6 @@ public class MainActivity extends AppCompatActivity implements BuAPI.OnMemberInf
         int id = item.getItemId();
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the accountHeader to the bundle
-        outState = mDrawerResult.saveInstanceState(outState);
-        super.onSaveInstanceState(outState);
     }
 
     @Override
