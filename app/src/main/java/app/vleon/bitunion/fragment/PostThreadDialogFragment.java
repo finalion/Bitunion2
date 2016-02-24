@@ -16,35 +16,24 @@ import java.io.IOException;
 import app.vleon.bitunion.MyApplication;
 import app.vleon.bitunion.R;
 
-public class PostDialogFragment extends DialogFragment {
+public class PostThreadDialogFragment extends DialogFragment {
     MyApplication app;
     EditText mSubjectEditText = null;
     EditText mMessageEditText = null;
-    private int mLaunchType = 0;
-    private String mPreMessage = "";
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         app = (MyApplication) getActivity().getApplicationContext();
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_post_dialog, null);
+        View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_thread_dialog, null);
         mSubjectEditText = (EditText) view.findViewById(R.id.editText_postThreadTitle);
         mMessageEditText = (EditText) view.findViewById(R.id.editText_postThreadMessage);
-        if (mLaunchType == 1)
-            mSubjectEditText.setVisibility(View.GONE);
-        else
-            mSubjectEditText.setVisibility(View.VISIBLE);
-        mMessageEditText.setText(String.format("%s\n", mPreMessage));
-        mMessageEditText.setSelection(mPreMessage.length()); //设置光标位置
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(view)
                 .setPositiveButton(R.string.post, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (mLaunchType == 1)
-                            attemptPostReply();
-                        else
-                            attemptPostThread();
+                        attemptPostThread();
                     }
                 })
                 .setNegativeButton(R.string.cancle, new DialogInterface.OnClickListener() {
@@ -74,28 +63,5 @@ public class PostDialogFragment extends DialogFragment {
                 e.printStackTrace();
             }
         }
-    }
-
-    public void attemptPostReply() {
-        mMessageEditText.setError(null);
-        String message = mMessageEditText.getText().toString();
-        if (TextUtils.isEmpty(message)) {
-            mMessageEditText.requestFocus();
-            mMessageEditText.setError("请输入内容");
-        } else {
-            try {
-                app.getAPI().postReply(message, 0);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void setLaunchType(int type) {
-        mLaunchType = type;
-    }
-
-    public void setPreMessage(String preMessage) {
-        mPreMessage = preMessage;
     }
 }

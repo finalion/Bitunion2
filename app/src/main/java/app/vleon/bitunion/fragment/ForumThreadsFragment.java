@@ -10,6 +10,9 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -82,6 +85,7 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if (getArguments() != null) {
             mForumId = getArguments().getInt(FORUM_ID, DEFAULT_FORUM_ID);
             mForumName = getArguments().getString(FORUM_NAME);
@@ -116,8 +120,8 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
         mFloatingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PostDialogFragment pdf = new PostDialogFragment();
-                pdf.show(getActivity().getSupportFragmentManager(), "post_dialog");
+                PostThreadDialogFragment ptdf = new PostThreadDialogFragment();
+                ptdf.show(getActivity().getSupportFragmentManager(), "post_thread_dialog");
             }
         });
 
@@ -171,11 +175,32 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
 //                }
             }
         });
-
         showRefreshingProgress(true);
         app.getAPI().getThreadsList(mForumId, mFrom, mTo);
-
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_thread_posts, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_refresh) {
+            showRefreshingProgress(true);
+            refreshData();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -214,8 +239,10 @@ public class ForumThreadsFragment extends Fragment implements BuAPI.OnThreadsRes
     @Override
     public void handleThreadsGetterResponse(BuAPI.Result result, ArrayList<BuThread> threadsList) {
         showRefreshingProgress(false);
-        if (clearFlag)
+        if (clearFlag) {
             mThreadsList.clear();
+            mThreadsRecyclerView.scrollVerticallyToPosition(0);
+        }
         switch (result) {
             case SUCCESS:
                 mThreadsList.addAll(threadsList);

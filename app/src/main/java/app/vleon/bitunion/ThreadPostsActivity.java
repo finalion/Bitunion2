@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import app.vleon.bitunion.adapter.ThreadPostsAdapter;
 import app.vleon.bitunion.buapi.BuAPI;
 import app.vleon.bitunion.buapi.BuPost;
-import app.vleon.bitunion.fragment.PostDialogFragment;
+import app.vleon.bitunion.fragment.PostReplyDialogFragment;
 import app.vleon.bitunion.ui.DividerItemDecoration;
 
 public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPostsResponseListener, BuAPI.OnPostNewReplyResponseListener {
@@ -64,9 +64,8 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         mFloatingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PostDialogFragment pdf = new PostDialogFragment();
-                pdf.setLaunchType(1); // hide subject textview
-                pdf.show(getSupportFragmentManager(), "reply_dialog");
+                PostReplyDialogFragment prdf = new PostReplyDialogFragment();
+                prdf.show(getSupportFragmentManager(), "reply_dialog");
             }
         });
 
@@ -80,26 +79,25 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
                 builder.setItems(new String[]{"@作者", "回复帖子"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String preMessage = "";
+                        PostReplyDialogFragment prdf = new PostReplyDialogFragment();
                         switch (which) {
                             case 0:
-                                preMessage = String.format("[@]%s[/@]", postInfo.author);
+                                prdf.setAtUsers(postInfo.author);
                                 break;
                             case 1:
                                 String shortPre = postInfo.content;
                                 if (postInfo.content.length() > 100) {
                                     shortPre = shortPre.substring(0, 100) + " ... ";
                                 }
-                                preMessage = String.format("[quote=%s][b]%s[/b] %s\n%s[/quote]",
+                                String quoteMessage = String.format("[quote=%s][b]%s[/b] %s\n%s[/quote]",
                                         postInfo.pid, postInfo.author, postInfo.lastedit, shortPre);
+                                prdf.setQuoteUser(postInfo.author);
+                                prdf.setQuoteMessage(quoteMessage);
                                 break;
                             default:
                                 break;
                         }
-                        PostDialogFragment pdf = new PostDialogFragment();
-                        pdf.setLaunchType(1); // hide subject textview
-                        pdf.setPreMessage(preMessage);
-                        pdf.show(getSupportFragmentManager(), "reply_dialog");
+                        prdf.show(getSupportFragmentManager(), "reply_dialog");
                     }
                 }).show();
             }
@@ -154,7 +152,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        menu.clear();
         getMenuInflater().inflate(R.menu.menu_thread_posts, menu);
         return true;
     }
@@ -165,9 +163,9 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
+            showRefreshingProgress(true);
             refreshData();
             return true;
         }
@@ -181,6 +179,7 @@ public class ThreadPostsActivity extends AppCompatActivity implements BuAPI.OnPo
         showRefreshingProgress(false);
         if (clearFlag) {
             mPostsList.clear();
+            mPostsRecyclerView.scrollVerticallyToPosition(0);
         }
         switch (result) {
             case SUCCESS:
